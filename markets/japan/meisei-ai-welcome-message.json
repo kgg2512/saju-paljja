@@ -1,0 +1,196 @@
+{
+  "_comment": "命星AI — LINE 웰컴 Flex Message (친구 추가 시 자동 발송)",
+  "_note": "LINE Messaging API reply 또는 push message로 사용. altText는 LINE 알림에 표시되는 텍스트.",
+  "type": "flex",
+  "altText": "✨ 命星AIへようこそ！AIで四柱推命を体験しよう",
+  "contents": {
+    "type": "bubble",
+    "size": "kilo",
+    "header": {
+      "type": "box",
+      "layout": "vertical",
+      "backgroundColor": "#06C755",
+      "paddingAll": "20px",
+      "contents": [
+        {
+          "type": "box",
+          "layout": "horizontal",
+          "contents": [
+            {
+              "type": "text",
+              "text": "🌿",
+              "size": "xxl",
+              "flex": 0
+            },
+            {
+              "type": "box",
+              "layout": "vertical",
+              "flex": 1,
+              "paddingStart": "10px",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "命星AI",
+                  "color": "#ffffff",
+                  "size": "xl",
+                  "weight": "bold"
+                },
+                {
+                  "type": "text",
+                  "text": "四柱推命AIサービス",
+                  "color": "#E8F9EE",
+                  "size": "xs"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "body": {
+      "type": "box",
+      "layout": "vertical",
+      "paddingAll": "20px",
+      "contents": [
+        {
+          "type": "text",
+          "text": "ようこそ！✨",
+          "weight": "bold",
+          "size": "lg",
+          "color": "#1A1A2E",
+          "margin": "none"
+        },
+        {
+          "type": "text",
+          "text": "あなたの四柱推命をAIが瞬時に読み解きます。",
+          "size": "sm",
+          "color": "#6B7280",
+          "wrap": true,
+          "margin": "sm"
+        },
+        {
+          "type": "separator",
+          "margin": "lg",
+          "color": "#E8ECF0"
+        },
+        {
+          "type": "box",
+          "layout": "vertical",
+          "margin": "lg",
+          "spacing": "md",
+          "contents": [
+            {
+              "type": "box",
+              "layout": "horizontal",
+              "spacing": "sm",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "🔮",
+                  "size": "md",
+                  "flex": 0
+                },
+                {
+                  "type": "box",
+                  "layout": "vertical",
+                  "flex": 1,
+                  "contents": [
+                    {
+                      "type": "text",
+                      "text": "四柱推命",
+                      "size": "sm",
+                      "weight": "bold",
+                      "color": "#1A1A2E"
+                    },
+                    {
+                      "type": "text",
+                      "text": "性格・才能・今年の運勢を分析",
+                      "size": "xs",
+                      "color": "#9CA3AF"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": "¥200",
+                  "size": "sm",
+                  "weight": "bold",
+                  "color": "#06C755",
+                  "flex": 0
+                }
+              ]
+            },
+            {
+              "type": "box",
+              "layout": "horizontal",
+              "spacing": "sm",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "💞",
+                  "size": "md",
+                  "flex": 0
+                },
+                {
+                  "type": "box",
+                  "layout": "vertical",
+                  "flex": 1,
+                  "contents": [
+                    {
+                      "type": "text",
+                      "text": "相性占い",
+                      "size": "sm",
+                      "weight": "bold",
+                      "color": "#1A1A2E"
+                    },
+                    {
+                      "type": "text",
+                      "text": "ふたりの縁を数値化・スコア表示",
+                      "size": "xs",
+                      "color": "#9CA3AF"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": "¥200",
+                  "size": "sm",
+                  "weight": "bold",
+                  "color": "#06C755",
+                  "flex": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "みんな最近これで占ってる 🌟",
+          "size": "xs",
+          "color": "#9CA3AF",
+          "align": "center",
+          "margin": "lg"
+        }
+      ]
+    },
+    "footer": {
+      "type": "box",
+      "layout": "vertical",
+      "paddingAll": "16px",
+      "backgroundColor": "#F7F8FA",
+      "contents": [
+        {
+          "type": "button",
+          "action": {
+            "type": "uri",
+            "label": "占いを始める →",
+            "uri": "https://liff.line.me/REPLACE_WITH_YOUR_LIFF_ID"
+          },
+          "style": "primary",
+          "color": "#06C755",
+          "height": "sm"
+        }
+      ]
+    }
+  }
+}
