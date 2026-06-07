@@ -403,7 +403,7 @@
         <div class="consent-brand">
           <span class="consent-brand-icon">🌿</span>
           <div>
-            <div class="consent-brand-name" id="consent-brand-name">命星<span>AI</span></div>
+            <div class="consent-brand-name" id="consent-brand-name"><span>MEI</span></div>
             <div id="consent-brand-sub" style="font-size:11px;color:#9CA3AF;">AI占いサービス</div>
           </div>
         </div>
@@ -419,13 +419,13 @@
           <label class="consent-check-item">
             <input type="checkbox" id="check-privacy" class="consent-checkbox">
             <span class="consent-check-text" id="check-privacy-label">
-              <a href="../../shared/legal/privacy.html" target="_blank" id="privacy-link">プライバシーポリシー</a>に同意します
+              <a href="../japan/legal/privacy.html" target="_blank" id="privacy-link">プライバシーポリシー</a>に同意します
             </span>
           </label>
           <label class="consent-check-item">
             <input type="checkbox" id="check-terms" class="consent-checkbox">
             <span class="consent-check-text" id="check-terms-label">
-              <a href="../../shared/legal/terms.html" target="_blank" id="terms-link">利用規約</a>を確認しました
+              <a href="../japan/legal/terms.html" target="_blank" id="terms-link">利用規約</a>を確認しました
             </span>
           </label>
         </div>
@@ -444,7 +444,7 @@
     <div class="menu-hero">
       <div class="menu-hero-stars">✦ ✧ ✦ ✧ ✦ ✧ ✦</div>
       <span class="menu-hero-icon">🌿</span>
-      <div class="menu-hero-title" id="hero-title">命星<span>AI</span></div>
+      <div class="menu-hero-title" id="hero-title"><span>MEI</span></div>
       <div class="menu-hero-sub" id="hero-sub">あなたの運命をAIが読み解く<br>四柱推命 × 人工知能</div>
       <span class="menu-hero-badge" id="hero-badge">✨ 1占い ¥200</span>
     </div>
@@ -466,9 +466,9 @@
       </button>
     </div>
     <div class="menu-footer">
-      <a href="../../shared/legal/privacy.html" id="footer-privacy">プライバシーポリシー</a>
+      <a href="../japan/legal/privacy.html" id="footer-privacy">プライバシーポリシー</a>
       <div class="menu-footer-sep"></div>
-      <a href="../../shared/legal/terms.html" id="footer-terms">利用規約</a>
+      <a href="../japan/legal/terms.html" id="footer-terms">利用規約</a>
     </div>
   </div>
 
@@ -992,9 +992,9 @@ function applyI18n(t) {
   document.getElementById('consent-desc').innerHTML = t.consentDesc + '<br><strong id="consent-age-text">' + t.consentAge + '</strong>';
   document.getElementById('check-age-label').textContent = t.checkAge;
   document.getElementById('check-privacy-label').innerHTML =
-    `<a href="../../shared/legal/privacy.html" target="_blank">${t.footerPrivacy}</a>・${t.checkPrivacy.replace(t.footerPrivacy, '').trim()}`;
+    `<a href="../japan/legal/privacy.html" target="_blank">${t.footerPrivacy}</a>・${t.checkPrivacy.replace(t.footerPrivacy, '').trim()}`;
   document.getElementById('check-terms-label').innerHTML =
-    `<a href="../../shared/legal/terms.html" target="_blank">${t.footerTerms}</a>・${t.checkTerms.replace(t.footerTerms, '').trim()}`;
+    `<a href="../japan/legal/terms.html" target="_blank">${t.footerTerms}</a>・${t.checkTerms.replace(t.footerTerms, '').trim()}`;
   document.getElementById('consent-btn').textContent = t.consentBtn;
 
   // 메뉴 화면
