@@ -86,7 +86,18 @@ function solarToLunar(year, month, day) {
   const target = new Date(year, month - 1, day);
   const diff = Math.floor((target - nyDate) / 86400000);
   if (diff < 0) {
-    return { year: year - 1, month: 12, day: Math.max(1, 29 + diff) };
+    // 설 이전 → 전년도 12월로 매핑 (근사: 음력 12월은 29~30일)
+    const absOffset = -diff;
+    let lm = 12, ld;
+    if (absOffset <= 30) {
+      ld = 30 - absOffset + 1;
+      if (ld < 1) { lm = 11; ld += 30; }
+    } else {
+      lm = 11;
+      ld = 60 - absOffset + 1;
+      if (ld < 1) { lm = 10; ld += 30; }
+    }
+    return { year: year - 1, month: lm, day: Math.max(1, ld) };
   }
   let lm = 1, ld = diff + 1;
   while (ld > 30) { ld -= 30; lm++; }
@@ -164,7 +175,7 @@ function calculateFourPillars(year, month, day, hourKanji) {
 function validateDate(dateStr) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) throw new Error('Invalid date format');
   const [y, m, d] = dateStr.split('-').map(Number);
-  if (y < 1900 || y > 2010) throw new Error('Year out of range');
+  if (y < 1900 || y > new Date().getFullYear()) throw new Error('Year out of range');
   if (m < 1 || m > 12) throw new Error('Invalid month');
   if (d < 1 || d > 31) throw new Error('Invalid day');
   const dt = new Date(y, m-1, d);
@@ -348,7 +359,7 @@ async function handleWebhook(request, env) {
                 },
                 {
                   type: 'text',
-                  text: '1占い ¥200（税込）',
+                  text: '1占い ¥500（税込）',
                   size: 'xs',
                   color: '#9CA3AF',
                   align: 'center',
@@ -406,7 +417,7 @@ async function handlePayment(request, env) {
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: new URLSearchParams({
-      amount: '200',          // ¥200
+      amount: '500',          // ¥500 (CFO 20260607 인상: ¥200→¥500)
       currency: 'jpy',
       description: `MEI 四柱推命 - ${type}`,
       'metadata[market]': 'japan',

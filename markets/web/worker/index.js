@@ -104,7 +104,20 @@ function solarToLunar(year, month, day) {
   const nyDate = new Date(year, nyM - 1, nyD);
   const target = new Date(year, month - 1, day);
   const diff = Math.floor((target - nyDate) / 86400000);
-  if (diff < 0) return { year: year - 1, month: 12, day: Math.max(1, 29 + diff) };
+  if (diff < 0) {
+    // 설 이전 → 전년도 12월로 매핑 (근사: 음력 12월은 29~30일)
+    const absOffset = -diff;
+    let lm = 12, ld;
+    if (absOffset <= 30) {
+      ld = 30 - absOffset + 1;
+      if (ld < 1) { lm = 11; ld += 30; }
+    } else {
+      lm = 11;
+      ld = 60 - absOffset + 1;
+      if (ld < 1) { lm = 10; ld += 30; }
+    }
+    return { year: year - 1, month: lm, day: Math.max(1, ld) };
+  }
   let lm = 1, ld = diff + 1;
   while (ld > 30) { ld -= 30; lm++; }
   return { year, month: Math.min(lm, 12), day: ld };
@@ -237,7 +250,7 @@ Akhiri dengan: "※Bacaan keserasian adalah untuk rujukan sahaja. Bukan ramalan 
 function validateDate(dateStr) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) throw new Error('Invalid date format');
   const [y, m, d] = dateStr.split('-').map(Number);
-  if (y < 1900 || y > 2010) throw new Error('Year out of range');
+  if (y < 1900 || y > new Date().getFullYear()) throw new Error('Year out of range');
   if (m < 1 || m > 12) throw new Error('Invalid month');
   if (d < 1 || d > 31) throw new Error('Invalid day');
   const dt = new Date(y, m-1, d);
@@ -530,11 +543,31 @@ async function handleFortune(request, env) {
     compatScore = Math.max(10, Math.min(100, score));
   }
 
-  // LLM 호출 — 시스템 프롬프트(마켓별 언어), 유저 메시지(사주 요약만)
+  // LLM 호출 — 시스템 프롬프트(마켓별 언어), 유저 메시지(사주 요약만, 마켓별 언어 사용)
   const systemPrompt = buildSystemPrompt(mkt.key, type);
+  // userMessage도 마켓별 언어로 작성 (CISO M6: 사주 요약만 전달, 생년월일 원본 금지)
+  const USER_MSG_SAJU = {
+    jp: (s) => `以下の四柱を占ってください:\n${s}`,
+    th: (s) => `กรุณาทำนายดวงชะตาจากสี่เสาหลักนี้:\n${s}`,
+    tw: (s) => `請為以下四柱算命：\n${s}`,
+    ph: (s) => `Please read the following Four Pillars:\n${s}`,
+    vn: (s) => `Vui lòng xem bói từ bốn trụ sau:\n${s}`,
+    my: (s) => `Sila baca Empat Tiang berikut:\n${s}`,
+  };
+  const USER_MSG_COMPAT = {
+    jp: (s1, s2, sc) => `あなたの四柱: ${s1}\nお相手の四柱: ${s2}\n五行相性スコア: ${sc}点`,
+    th: (s1, s2, sc) => `สี่เสาของคุณ: ${s1}\nสี่เสาของคู่: ${s2}\nคะแนนธาตุห้า: ${sc} คะแนน`,
+    tw: (s1, s2, sc) => `您的四柱：${s1}\n對方的四柱：${s2}\n五行緣分分數：${sc}分`,
+    ph: (s1, s2, sc) => `Person 1 Four Pillars: ${s1}\nPerson 2 Four Pillars: ${s2}\nCompatibility score: ${sc}/100`,
+    vn: (s1, s2, sc) => `Tứ Trụ của bạn: ${s1}\nTứ Trụ đối tác: ${s2}\nĐiểm tương hợp: ${sc}`,
+    my: (s1, s2, sc) => `Empat Tiang anda: ${s1}\nEmpat Tiang pasangan: ${s2}\nSkor keserasian: ${sc}`,
+  };
+  const mkKey = mkt.key;
+  const msgSaju = USER_MSG_SAJU[mkKey] || USER_MSG_SAJU.jp;
+  const msgCompat = USER_MSG_COMPAT[mkKey] || USER_MSG_COMPAT.jp;
   const userMessage = type === 'saju'
-    ? `以下の四柱を占ってください:\n${pillars1Summary}`
-    : `あなたの四柱: ${pillars1Summary}\nお相手の四柱: ${pillars2Summary}\n五行相性スコア: ${compatScore}点`;
+    ? msgSaju(pillars1Summary)
+    : msgCompat(pillars1Summary, pillars2Summary, compatScore);
 
   let fortuneText;
   try {

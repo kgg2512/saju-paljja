@@ -216,11 +216,20 @@ function solarToLunarApprox(year, month, day) {
     const diffDays = Math.floor((targetDate - nyDate) / 86400000);
 
     if (diffDays < 0) {
-      // 음력 설 이전 → 전년도
+      // 음력 설 이전 → 전년도 음력 12월로 매핑 (근사)
+      // diffDays가 -1 ~ -30이면 12월, -31 이하면 11월 등으로 역산
       lunarYear = year - 1;
-      lunarMonth = 12;
-      lunarDay = 29 + diffDays; // 근사
-      if (lunarDay < 1) { lunarMonth = 11; lunarDay += 29; }
+      const absOffset = -diffDays; // 설로부터 며칠 전
+      if (absOffset <= 30) {
+        lunarMonth = 12;
+        lunarDay = 30 - absOffset + 1; // 12월 말에서 거슬러올라감
+        if (lunarDay < 1) { lunarMonth = 11; lunarDay += 30; }
+      } else {
+        lunarMonth = 11;
+        lunarDay = 60 - absOffset + 1;
+        if (lunarDay < 1) { lunarMonth = 10; lunarDay += 30; }
+      }
+      lunarDay = Math.max(1, lunarDay);
     } else {
       // 음력 설 이후
       lunarMonth = 1;

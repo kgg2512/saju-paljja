@@ -19,8 +19,8 @@ export const MARKETS = {
     language: 'ja',
     currency: 'jpy',
     currencySymbol: '¥',
-    priceUnit: 200,            // 1쿼리 단가 (CFO 확정)
-    bep: 8,                    // 손익분기 쿼리 수
+    priceUnit: 500,            // 1쿼리 단가 (CFO 20260607 인상: ¥200→¥500)
+    bep: 4,                    // 손익분기 쿼리 수 (인상 후 재계산)
     payment: 'stripe',         // Stripe Japan (LINE Pay Japan 2025-04-30 종료)
     webAppUrl: 'https://kgg2512.github.io/saju-paljja/markets/web/app.html?market=jp',
     liffEndpoint: 'https://kgg2512.github.io/saju-paljja/markets/japan/liff/',
@@ -35,7 +35,7 @@ export const MARKETS = {
     // 마켓별 UX 텍스트
     ui: {
       consentBtn: '占いを始める 🌿',
-      payBtn: '¥200 を支払って占う ✨',
+      payBtn: '¥500 を支払って占う ✨',
       shareMsg: (label, preview) =>
         `✨ MEIで${label}しました！\n\n🌿 ${preview}\n▶ 今すぐ試す\nhttps://lin.ee/REPLACE_ME\n#MEI #四柱推命`,
     },
