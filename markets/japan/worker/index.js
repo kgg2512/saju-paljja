@@ -1,6 +1,6 @@
-/**
+﻿/**
  * markets/japan/worker/index.js
- * 命星AI — Japan CF Workers 백엔드
+ * MEI — Japan CF Workers 백엔드
  *
  * CISO 3원칙:
  * 1. 세션처리만 (생년월일 저장 금지, KV는 결제상태 TTL 1h만)
@@ -312,7 +312,7 @@ async function handleWebhook(request, env) {
       await replyLineMessage(event.replyToken, [
         {
           type: 'flex',
-          altText: 'ようこそ！命星AIへ🌿',
+          altText: 'ようこそ！MEIへ🌿',
           contents: {
             type: 'bubble',
             size: 'giga',
@@ -323,7 +323,7 @@ async function handleWebhook(request, env) {
               contents: [
                 {
                   type: 'text',
-                  text: '🌿 命星AI',
+                  text: '🌿 MEI',
                   size: 'xl',
                   weight: 'bold',
                   color: '#06C755',
@@ -408,7 +408,7 @@ async function handlePayment(request, env) {
     body: new URLSearchParams({
       amount: '200',          // ¥200
       currency: 'jpy',
-      description: `命星AI 四柱推命 - ${type}`,
+      description: `MEI 四柱推命 - ${type}`,
       'metadata[market]': 'japan',
       'metadata[type]': type,
     }),
@@ -586,7 +586,7 @@ function handleHealth() {
   return corsResponse({
     status: 'ok',
     market: 'japan',
-    service: '命星AI',
+    service: 'MEI',
     timestamp: new Date().toISOString(),
   });
 }

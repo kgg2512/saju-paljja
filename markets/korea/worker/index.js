@@ -1,10 +1,10 @@
-/**
+﻿/**
  * markets/korea/worker/index.js
  * 사주AI — Korea CF Workers 스켈레톤 (Phase 2)
  *
  * 상태: Phase 2 대기 중
  * 블로커:
- *   - 브랜드명 미확정 (CLO: "무릎팍도사" 상표권 리스크)
+ *   - 브랜드명 미확정 (CLO: "사주팔자" 상표권 리스크)
  *   - 사업자등록 필요
  *   - 통신판매업신고 필요
  *   - KakaoPay vs Stripe Korea 결제 수단 미확정

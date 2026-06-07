@@ -1,4 +1,4 @@
-/**
+﻿/**
  * shared/saju-engine/markets.js
  * 마켓별 설정 — 단가, 플랫폼, 언어, 통화, 결제 수단
  *
@@ -13,8 +13,8 @@ export const MARKETS = {
 
   japan: {
     id: 'japan',
-    name: '命星AI',
-    nameLatin: 'MeiSei AI',
+    name: 'MEI',
+    nameLatin: 'MEI',
     platform: 'line',          // LINE Messaging API + LIFF
     language: 'ja',
     currency: 'jpy',
@@ -22,8 +22,8 @@ export const MARKETS = {
     priceUnit: 200,            // 1쿼리 단가 (CFO 확정)
     bep: 8,                    // 손익분기 쿼리 수
     payment: 'stripe',         // Stripe Japan (LINE Pay Japan 2025-04-30 종료)
-    webAppUrl: 'https://kgg2512.github.io/mureupak-dosa/markets/web/app.html?market=jp',
-    liffEndpoint: 'https://kgg2512.github.io/mureupak-dosa/markets/japan/liff/',
+    webAppUrl: 'https://kgg2512.github.io/saju-paljja/markets/web/app.html?market=jp',
+    liffEndpoint: 'https://kgg2512.github.io/saju-paljja/markets/japan/liff/',
     workerRoute: '/japan/*',
     region: 'JP',
     locale: 'ja-JP',
@@ -37,7 +37,7 @@ export const MARKETS = {
       consentBtn: '占いを始める 🌿',
       payBtn: '¥200 を支払って占う ✨',
       shareMsg: (label, preview) =>
-        `✨ 命星AIで${label}しました！\n\n🌿 ${preview}\n▶ 今すぐ試す\nhttps://lin.ee/REPLACE_ME\n#命星AI #四柱推命`,
+        `✨ MEIで${label}しました！\n\n🌿 ${preview}\n▶ 今すぐ試す\nhttps://lin.ee/REPLACE_ME\n#MEI #四柱推命`,
     },
   },
 
@@ -52,7 +52,7 @@ export const MARKETS = {
     priceUnit: 990,            // 1쿼리 단가 (CFO 확정)
     bep: 11,
     payment: 'stripe',         // KakaoPay or Stripe Korea — 브랜드 확정 후 선택
-    liffEndpoint: 'https://kgg2512.github.io/mureupak-dosa/markets/korea/',
+    liffEndpoint: 'https://kgg2512.github.io/saju-paljja/markets/korea/',
     workerRoute: '/korea/*',
     region: 'KR',
     locale: 'ko-KR',
@@ -71,8 +71,8 @@ export const MARKETS = {
 
   taiwan: {
     id: 'taiwan',
-    name: '命星AI',             // Japan과 동일 브랜드 — 언어만 다름
-    nameLatin: 'MeiSei AI',
+    name: 'MEI',             // Japan과 동일 브랜드 — 언어만 다름
+    nameLatin: 'MEI',
     platform: 'line',
     language: 'zh-TW',
     currency: 'twd',
@@ -80,8 +80,8 @@ export const MARKETS = {
     priceUnit: 45,             // NT$45 (CFO 확정)
     bep: 12,
     payment: 'stripe',         // LINE Pay Taiwan 활성 여부 확인 필요 (Taiwan = LINE Pay OK)
-    webAppUrl: 'https://kgg2512.github.io/mureupak-dosa/markets/web/app.html?market=tw',
-    liffEndpoint: 'https://kgg2512.github.io/mureupak-dosa/markets/taiwan/liff/',
+    webAppUrl: 'https://kgg2512.github.io/saju-paljja/markets/web/app.html?market=tw',
+    liffEndpoint: 'https://kgg2512.github.io/saju-paljja/markets/taiwan/liff/',
     workerRoute: '/taiwan/*',
     region: 'TW',
     locale: 'zh-TW',
@@ -95,14 +95,14 @@ export const MARKETS = {
       consentBtn: '開始算命 🌿',
       payBtn: 'NT$45 付款算命 ✨',
       shareMsg: (label, preview) =>
-        `✨ 用命星AI算了${label}！\n\n🌿 ${preview}\n▶ 立即體驗\n#命星AI #八字`,
+        `✨ 用MEI算了${label}！\n\n🌿 ${preview}\n▶ 立即體驗\n#MEI #八字`,
     },
   },
 
   thailand: {
     id: 'thailand',
-    name: 'MeiSei AI',
-    nameLatin: 'MeiSei AI',
+    name: 'MEI',
+    nameLatin: 'MEI',
     platform: 'line',
     language: 'th',
     currency: 'thb',
@@ -110,8 +110,8 @@ export const MARKETS = {
     priceUnit: 39,             // ฿39 (CFO 확정)
     bep: 14,
     payment: 'stripe',         // LINE Pay Thailand 확인 필요
-    webAppUrl: 'https://kgg2512.github.io/mureupak-dosa/markets/web/app.html?market=th',
-    liffEndpoint: 'https://kgg2512.github.io/mureupak-dosa/markets/thailand/liff/',
+    webAppUrl: 'https://kgg2512.github.io/saju-paljja/markets/web/app.html?market=th',
+    liffEndpoint: 'https://kgg2512.github.io/saju-paljja/markets/thailand/liff/',
     workerRoute: '/thailand/*',
     region: 'TH',
     locale: 'th-TH',
@@ -125,7 +125,7 @@ export const MARKETS = {
       consentBtn: 'เริ่มดูดวง 🌿',
       payBtn: '฿39 ชำระเงินดูดวง ✨',
       shareMsg: (label, preview) =>
-        `✨ ดู${label}กับ MeiSei AI แล้ว!\n\n🌿 ${preview}\n▶ ลองเลย\n#MeiSeiAI #ดูดวง`,
+        `✨ ดู${label}กับ MEI แล้ว!\n\n🌿 ${preview}\n▶ ลองเลย\n#MeiSeiAI #ดูดวง`,
     },
   },
 
@@ -133,8 +133,8 @@ export const MARKETS = {
 
   philippines: {
     id: 'philippines',
-    name: 'MeiSei AI',
-    nameLatin: 'MeiSei AI',
+    name: 'MEI',
+    nameLatin: 'MEI',
     platform: 'web',           // 범용 웹앱 — 어떤 메신저 링크도 동작
     language: 'en',
     currency: 'php',
@@ -142,7 +142,7 @@ export const MARKETS = {
     priceUnit: 59,             // ₱59 (CFO 확정)
     bep: 10,
     payment: 'stripe',
-    webAppUrl: 'https://kgg2512.github.io/mureupak-dosa/markets/web/app.html?market=ph',
+    webAppUrl: 'https://kgg2512.github.io/saju-paljja/markets/web/app.html?market=ph',
     workerRoute: '/web/*',
     region: 'PH',
     locale: 'en-PH',
@@ -156,14 +156,14 @@ export const MARKETS = {
       consentBtn: 'Start Reading 🌿',
       payBtn: '₱59 Pay & Read ✨',
       shareMsg: (label, preview) =>
-        `✨ Got my ${label} on MeiSei AI!\n\n🌿 ${preview}\n▶ Try it now\n#MeiSeiAI #BaZi`,
+        `✨ Got my ${label} on MEI!\n\n🌿 ${preview}\n▶ Try it now\n#MeiSeiAI #BaZi`,
     },
   },
 
   vietnam: {
     id: 'vietnam',
-    name: 'MeiSei AI',
-    nameLatin: 'MeiSei AI',
+    name: 'MEI',
+    nameLatin: 'MEI',
     platform: 'web',           // 범용 웹앱
     language: 'vi',
     currency: 'vnd',
@@ -171,7 +171,7 @@ export const MARKETS = {
     priceUnit: 25000,          // ₫25,000 (CFO 확정)
     bep: 9,
     payment: 'stripe',
-    webAppUrl: 'https://kgg2512.github.io/mureupak-dosa/markets/web/app.html?market=vn',
+    webAppUrl: 'https://kgg2512.github.io/saju-paljja/markets/web/app.html?market=vn',
     workerRoute: '/web/*',
     region: 'VN',
     locale: 'vi-VN',
@@ -185,14 +185,14 @@ export const MARKETS = {
       consentBtn: 'Bắt đầu xem bói 🌿',
       payBtn: '₫25.000 Thanh toán ✨',
       shareMsg: (label, preview) =>
-        `✨ Đã xem ${label} với MeiSei AI!\n\n🌿 ${preview}\n▶ Thử ngay\n#MeiSeiAI #TứTrụ`,
+        `✨ Đã xem ${label} với MEI!\n\n🌿 ${preview}\n▶ Thử ngay\n#MeiSeiAI #TứTrụ`,
     },
   },
 
   malaysia: {
     id: 'malaysia',
-    name: 'MeiSei AI',
-    nameLatin: 'MeiSei AI',
+    name: 'MEI',
+    nameLatin: 'MEI',
     platform: 'web',           // 범용 웹앱
     language: 'ms',
     currency: 'myr',
@@ -200,7 +200,7 @@ export const MARKETS = {
     priceUnit: 6,              // RM6 (CFO 확정)
     bep: 10,
     payment: 'stripe',
-    webAppUrl: 'https://kgg2512.github.io/mureupak-dosa/markets/web/app.html?market=my',
+    webAppUrl: 'https://kgg2512.github.io/saju-paljja/markets/web/app.html?market=my',
     workerRoute: '/web/*',
     region: 'MY',
     locale: 'ms-MY',
@@ -214,14 +214,14 @@ export const MARKETS = {
       consentBtn: 'Mula Bacaan 🌿',
       payBtn: 'RM6 Bayar & Baca ✨',
       shareMsg: (label, preview) =>
-        `✨ Dapat ${label} di MeiSei AI!\n\n🌿 ${preview}\n▶ Cuba sekarang\n#MeiSeiAI #BaZi`,
+        `✨ Dapat ${label} di MEI!\n\n🌿 ${preview}\n▶ Cuba sekarang\n#MeiSeiAI #BaZi`,
     },
   },
 
   global: {
     id: 'global',
-    name: 'MeiSei AI',
-    nameLatin: 'MeiSei AI',
+    name: 'MEI',
+    nameLatin: 'MEI',
     platform: 'web',           // 직접 웹 접근 (Stripe)
     language: 'en',
     currency: 'usd',
@@ -230,7 +230,7 @@ export const MARKETS = {
     priceDisplay: '$2.00',
     bep: 6,
     payment: 'stripe',
-    liffEndpoint: 'https://kgg2512.github.io/mureupak-dosa/',
+    liffEndpoint: 'https://kgg2512.github.io/saju-paljja/',
     workerRoute: '/global/*',
     region: 'GLOBAL',
     locale: 'en-US',
@@ -243,7 +243,7 @@ export const MARKETS = {
       consentBtn: 'Start Reading 🌿',
       payBtn: '$2.00 Pay & Read ✨',
       shareMsg: (label, preview) =>
-        `✨ Got my ${label} on MeiSei AI!\n\n🌿 ${preview}\n▶ Try it now\n#MeiSeiAI #BaZi`,
+        `✨ Got my ${label} on MEI!\n\n🌿 ${preview}\n▶ Try it now\n#MeiSeiAI #BaZi`,
     },
   },
 };

@@ -1,6 +1,6 @@
-# deploy-cf.ps1
-# 命星AI — Cloudflare Workers 자동 배포 스크립트
-# 실행: cd "C:\Users\kgg25\Desktop\무릎팍도사" ; .\deploy-cf.ps1
+﻿# deploy-cf.ps1
+# MEI — Cloudflare Workers 자동 배포 스크립트
+# 실행: cd "C:\Users\kgg25\Desktop\사주팔자" ; .\deploy-cf.ps1
 #
 # 전제 조건: Node.js / npm 설치됨
 
@@ -14,7 +14,7 @@ function Write-Fail { param([string]$msg) Write-Host "    ERROR: $msg" -Foregrou
 
 Write-Host ""
 Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host "  命星AI — Cloudflare Workers 배포 도우미  " -ForegroundColor Cyan
+Write-Host "  MEI — Cloudflare Workers 배포 도우미  " -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 
 # ─────────────────────────────────────────────
@@ -112,7 +112,7 @@ Pop-Location
 # ─────────────────────────────────────────────
 # STEP 5 — Worker 배포
 # ─────────────────────────────────────────────
-Write-Step "5/6" "Worker 배포 중 (meisei-ai-web)..."
+Write-Step "5/6" "Worker 배포 중 (the-fate-web)..."
 
 Push-Location $workerDir
 $deployRaw = (wrangler deploy 2>&1) -join "`n"
@@ -124,7 +124,7 @@ $workerUrl = $urlMatch.Value
 
 if (-not $workerUrl) {
     Write-Fail "Worker URL 자동 감지 실패."
-    $workerUrl = Read-Host "    배포 출력에서 URL 복사 후 여기 붙여넣기 (https://meisei-ai-web.xxx.workers.dev)"
+    $workerUrl = Read-Host "    배포 출력에서 URL 복사 후 여기 붙여넣기 (https://the-fate-web.xxx.workers.dev)"
 }
 
 Write-OK "Worker URL: $workerUrl"
@@ -155,8 +155,8 @@ Write-Host "  배포 완료!" -ForegroundColor Green
 Write-Host "==========================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "  Worker URL : $workerUrl" -ForegroundColor White
-Write-Host "  Landing    : https://kgg2512.github.io/mureupak-dosa/" -ForegroundColor White
-Write-Host "  Web App    : https://kgg2512.github.io/mureupak-dosa/markets/web/app.html" -ForegroundColor White
+Write-Host "  Landing    : https://kgg2512.github.io/saju-paljja/" -ForegroundColor White
+Write-Host "  Web App    : https://kgg2512.github.io/saju-paljja/markets/web/app.html" -ForegroundColor White
 Write-Host ""
 Write-Host "  ── Stripe 등록 완료 후 해야 할 것 ──────────────────────" -ForegroundColor Yellow
 Write-Host "  1. cd markets\web\worker" -ForegroundColor Gray

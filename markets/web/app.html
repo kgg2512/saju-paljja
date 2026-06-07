@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#06C755">
-  <title>命星AI — AI占いサービス</title>
+  <title>MEI — AI占いサービス</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
@@ -583,7 +583,7 @@
     <div class="result-bg"></div>
     <div class="result-container">
       <div class="result-top-bar">
-        <div class="result-brand">🌿 <span id="result-brand-name">命星AI</span></div>
+        <div class="result-brand">🌿 <span id="result-brand-name">MEI</span></div>
         <span class="result-type-badge" id="result-type-badge">四柱推命</span>
       </div>
       <div class="pillars-wrap" id="pillars-wrap">
@@ -648,10 +648,10 @@
 const MARKET_I18N = {
   jp: {
     lang: 'ja',
-    brandName: '命星AI',
+    brandName: 'MEI',
     brandSub: 'AI占いサービス',
     viralBar: '✦ みんな最近これで占ってる ✦',
-    heroTitle: '命星AI',
+    heroTitle: 'MEI',
     heroSub: 'あなたの運命をAIが読み解く<br>四柱推命 × 人工知能',
     heroBadge: '✨ 1占い ¥200',
     menuSection: '占いを選んでください',
@@ -683,7 +683,7 @@ const MARKET_I18N = {
     resultSection: '鑑定結果',
     disclaimer: '※本結果はAIによる自動生成です。予言・保証ではございません。',
     shareBtn: 'シェアする',
-    shareMsg: (type, preview, url) => `✨ 命星AIで${type === 'saju' ? '四柱推命' : '相性占い'}しました！\n\n🌿 ${preview}\n\n▶ 今すぐ試す\n${url}\n#命星AI #四柱推命`,
+    shareMsg: (type, preview, url) => `✨ MEIで${type === 'saju' ? '四柱推命' : '相性占い'}しました！\n\n🌿 ${preview}\n\n▶ 今すぐ試す\n${url}\n#MEI #四柱推命`,
     retryBtn: '↩ もう一度占う',
     timeOptions: [
       ['不明','わからない'],['子','子の刻（23:00-1:00）'],['丑','丑の刻（1:00-3:00）'],
@@ -697,10 +697,10 @@ const MARKET_I18N = {
   },
   th: {
     lang: 'th',
-    brandName: 'MeiSei AI',
+    brandName: 'MEI',
     brandSub: 'บริการดูดวง AI',
     viralBar: '✦ ทุกคนกำลังใช้นี้อยู่ ✦',
-    heroTitle: 'MeiSei AI',
+    heroTitle: 'MEI',
     heroSub: 'AI อ่านโชคชะตาของคุณ<br>โหราศาสตร์จีน × ปัญญาประดิษฐ์',
     heroBadge: '✨ ดูดวง ฿39',
     menuSection: 'เลือกประเภทการดูดวง',
@@ -732,7 +732,7 @@ const MARKET_I18N = {
     resultSection: 'ผลการทำนาย',
     disclaimer: '※ ผลลัพธ์นี้สร้างโดย AI โดยอัตโนมัติ ไม่ใช่การพยากรณ์หรือการรับประกัน',
     shareBtn: 'แชร์',
-    shareMsg: (type, preview, url) => `✨ ดู${type === 'saju' ? 'ดวง' : 'ความเข้ากัน'}กับ MeiSei AI แล้ว!\n\n🌿 ${preview}\n\n▶ ลองเลย\n${url}\n#MeiSeiAI #ดูดวง`,
+    shareMsg: (type, preview, url) => `✨ ดู${type === 'saju' ? 'ดวง' : 'ความเข้ากัน'}กับ MEI แล้ว!\n\n🌿 ${preview}\n\n▶ ลองเลย\n${url}\n#MeiSeiAI #ดูดวง`,
     retryBtn: '↩ ดูดวงอีกครั้ง',
     timeOptions: [
       ['不明','ไม่ทราบ'],['子','ชื่อ (23:00-1:00)'],['丑','ฉ่ำ (1:00-3:00)'],
@@ -746,10 +746,10 @@ const MARKET_I18N = {
   },
   tw: {
     lang: 'zh-TW',
-    brandName: '命星AI',
+    brandName: 'MEI',
     brandSub: 'AI算命服務',
     viralBar: '✦ 大家都在用這個算命 ✦',
-    heroTitle: '命星AI',
+    heroTitle: 'MEI',
     heroSub: 'AI解讀你的命運<br>八字命理 × 人工智慧',
     heroBadge: '✨ 一次算命 NT$39',
     menuSection: '請選擇算命類型',
@@ -781,7 +781,7 @@ const MARKET_I18N = {
     resultSection: '算命結果',
     disclaimer: '※本結果由AI自動生成，非預言或保證。',
     shareBtn: '分享',
-    shareMsg: (type, preview, url) => `✨ 用命星AI算了${type === 'saju' ? '八字' : '合婚'}！\n\n🌿 ${preview}\n\n▶ 立即體驗\n${url}\n#命星AI #八字`,
+    shareMsg: (type, preview, url) => `✨ 用MEI算了${type === 'saju' ? '八字' : '合婚'}！\n\n🌿 ${preview}\n\n▶ 立即體驗\n${url}\n#MEI #八字`,
     retryBtn: '↩ 再算一次',
     timeOptions: [
       ['不明','不知道'],['子','子時 (23:00-1:00)'],['丑','丑時 (1:00-3:00)'],
@@ -795,10 +795,10 @@ const MARKET_I18N = {
   },
   ph: {
     lang: 'en',
-    brandName: 'MeiSei AI',
+    brandName: 'MEI',
     brandSub: 'AI Fortune Service',
     viralBar: '✦ Everyone is using this now ✦',
-    heroTitle: 'MeiSei AI',
+    heroTitle: 'MEI',
     heroSub: 'AI reads your destiny<br>BaZi Astrology × Artificial Intelligence',
     heroBadge: '✨ One Reading ₱59',
     menuSection: 'Choose Your Reading',
@@ -830,7 +830,7 @@ const MARKET_I18N = {
     resultSection: 'Your Reading',
     disclaimer: '※ This result is AI-generated. It is not a prediction or guarantee.',
     shareBtn: 'Share',
-    shareMsg: (type, preview, url) => `✨ Got my ${type === 'saju' ? 'BaZi Reading' : 'Compatibility Reading'} on MeiSei AI!\n\n🌿 ${preview}\n\n▶ Try it now\n${url}\n#MeiSeiAI #BaZi`,
+    shareMsg: (type, preview, url) => `✨ Got my ${type === 'saju' ? 'BaZi Reading' : 'Compatibility Reading'} on MEI!\n\n🌿 ${preview}\n\n▶ Try it now\n${url}\n#MeiSeiAI #BaZi`,
     retryBtn: '↩ New Reading',
     timeOptions: [
       ['不明','Unknown'],['子','Zi (23:00-1:00)'],['丑','Chou (1:00-3:00)'],
@@ -844,10 +844,10 @@ const MARKET_I18N = {
   },
   vn: {
     lang: 'vi',
-    brandName: 'MeiSei AI',
+    brandName: 'MEI',
     brandSub: 'Dịch vụ xem bói AI',
     viralBar: '✦ Mọi người đang dùng cái này ✦',
-    heroTitle: 'MeiSei AI',
+    heroTitle: 'MEI',
     heroSub: 'AI đọc vận mệnh của bạn<br>Tứ Trụ Mệnh Lý × Trí Tuệ Nhân Tạo',
     heroBadge: '✨ Xem một lần ₫25.000',
     menuSection: 'Chọn loại xem bói',
@@ -879,7 +879,7 @@ const MARKET_I18N = {
     resultSection: 'Kết Quả Xem Bói',
     disclaimer: '※ Kết quả này được AI tạo tự động, không phải dự đoán hay bảo đảm.',
     shareBtn: 'Chia sẻ',
-    shareMsg: (type, preview, url) => `✨ Đã xem ${type === 'saju' ? 'Tứ Trụ' : 'Hợp Tuổi'} với MeiSei AI!\n\n🌿 ${preview}\n\n▶ Thử ngay\n${url}\n#MeiSeiAI #TứTrụ`,
+    shareMsg: (type, preview, url) => `✨ Đã xem ${type === 'saju' ? 'Tứ Trụ' : 'Hợp Tuổi'} với MEI!\n\n🌿 ${preview}\n\n▶ Thử ngay\n${url}\n#MeiSeiAI #TứTrụ`,
     retryBtn: '↩ Xem lại',
     timeOptions: [
       ['不明','Không biết'],['子','Giờ Tý (23:00-1:00)'],['丑','Giờ Sửu (1:00-3:00)'],
@@ -893,10 +893,10 @@ const MARKET_I18N = {
   },
   my: {
     lang: 'ms',
-    brandName: 'MeiSei AI',
+    brandName: 'MEI',
     brandSub: 'Perkhidmatan Ramalan AI',
     viralBar: '✦ Semua orang sedang menggunakan ini ✦',
-    heroTitle: 'MeiSei AI',
+    heroTitle: 'MEI',
     heroSub: 'AI membaca nasib anda<br>BaZi Astrologi × Kecerdasan Buatan',
     heroBadge: '✨ Satu Bacaan RM6',
     menuSection: 'Pilih Jenis Bacaan',
@@ -928,7 +928,7 @@ const MARKET_I18N = {
     resultSection: 'Bacaan Anda',
     disclaimer: '※ Keputusan ini dijana oleh AI secara automatik. Ia bukan ramalan atau jaminan.',
     shareBtn: 'Kongsi',
-    shareMsg: (type, preview, url) => `✨ Dapat ${type === 'saju' ? 'Bacaan BaZi' : 'Bacaan Keserasian'} di MeiSei AI!\n\n🌿 ${preview}\n\n▶ Cuba sekarang\n${url}\n#MeiSeiAI #BaZi`,
+    shareMsg: (type, preview, url) => `✨ Dapat ${type === 'saju' ? 'Bacaan BaZi' : 'Bacaan Keserasian'} di MEI!\n\n🌿 ${preview}\n\n▶ Cuba sekarang\n${url}\n#MeiSeiAI #BaZi`,
     retryBtn: '↩ Bacaan Baru',
     timeOptions: [
       ['不明','Tidak tahu'],['子','Zi (23:00-1:00)'],['丑','Chou (1:00-3:00)'],

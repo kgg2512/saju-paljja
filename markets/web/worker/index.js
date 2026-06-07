@@ -1,6 +1,6 @@
-/**
+﻿/**
  * markets/web/worker/index.js
- * 무릎팍도사 — 범용 멀티마켓 CF Workers 백엔드
+ * 사주팔자 — 범용 멀티마켓 CF Workers 백엔드
  *
  * CISO 3원칙:
  * 1. 세션처리만 (생년월일 저장 금지, KV는 결제상태 TTL 1h만)
@@ -24,12 +24,12 @@
 // 마켓 설정 (markets.js와 동기화 유지)
 // ──────────────────────────────────────────
 const MARKETS = {
-  jp: { price: 200, currency: 'jpy', lang: 'ja', name: '命星AI', platform: 'line', minAge: 18 },
-  th: { price: 39,  currency: 'thb', lang: 'th', name: 'MeiSei AI', platform: 'line', minAge: 18 },
-  tw: { price: 39,  currency: 'twd', lang: 'zh-TW', name: '命星AI', platform: 'line', minAge: 18 },
-  ph: { price: 59,  currency: 'php', lang: 'en', name: 'MeiSei AI', platform: 'web', minAge: 18 },
-  vn: { price: 25000, currency: 'vnd', lang: 'vi', name: 'MeiSei AI', platform: 'web', minAge: 18 },
-  my: { price: 6,   currency: 'myr', lang: 'ms', name: 'MeiSei AI', platform: 'web', minAge: 18 },
+  jp: { price: 200, currency: 'jpy', lang: 'ja', name: 'MEI', platform: 'line', minAge: 18 },
+  th: { price: 39,  currency: 'thb', lang: 'th', name: 'MEI', platform: 'line', minAge: 18 },
+  tw: { price: 39,  currency: 'twd', lang: 'zh-TW', name: 'MEI', platform: 'line', minAge: 18 },
+  ph: { price: 59,  currency: 'php', lang: 'en', name: 'MEI', platform: 'web', minAge: 18 },
+  vn: { price: 25000, currency: 'vnd', lang: 'vi', name: 'MEI', platform: 'web', minAge: 18 },
+  my: { price: 6,   currency: 'myr', lang: 'ms', name: 'MEI', platform: 'web', minAge: 18 },
 };
 
 function getMarket(marketParam) {
@@ -374,10 +374,10 @@ async function handleCheckout(request, env) {
   // Stripe Checkout Session 생성
   const successUrl = returnUrl
     ? `${returnUrl}?payment=success&session_id={CHECKOUT_SESSION_ID}&market=${mkt.key}`
-    : `https://kgg2512.github.io/mureupak-dosa/markets/web/app.html?payment=success&session_id={CHECKOUT_SESSION_ID}&market=${mkt.key}`;
+    : `https://kgg2512.github.io/saju-paljja/markets/web/app.html?payment=success&session_id={CHECKOUT_SESSION_ID}&market=${mkt.key}`;
   const cancelUrl = returnUrl
     ? `${returnUrl}?payment=cancel&market=${mkt.key}`
-    : `https://kgg2512.github.io/mureupak-dosa/markets/web/app.html?payment=cancel&market=${mkt.key}`;
+    : `https://kgg2512.github.io/saju-paljja/markets/web/app.html?payment=cancel&market=${mkt.key}`;
 
   // Checkout Session metadata에 사주 계산 결과만 저장 (생년월일 원본 저장 금지 — CISO)
   const hourKanji = validateHour(userData.time);
@@ -558,7 +558,7 @@ function parsePillarsSummary(summary) {
 function handleHealth() {
   return corsResponse({
     status: 'ok',
-    service: 'mureupak-dosa-web',
+    service: 'saju-paljja-web',
     markets: Object.keys(MARKETS),
     timestamp: new Date().toISOString(),
   });
@@ -580,7 +580,7 @@ async function handleLineWebhook(request, env) {
   }
 
   const events = payload.events || [];
-  const appUrl = env.WEB_APP_URL || 'https://kgg2512.github.io/mureupak-dosa/markets/web/app.html';
+  const appUrl = env.WEB_APP_URL || 'https://kgg2512.github.io/saju-paljja/markets/web/app.html';
 
   for (const event of events) {
     const userId = event.source?.userId || 'unknown';

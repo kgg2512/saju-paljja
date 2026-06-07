@@ -1,5 +1,5 @@
-# markets/web/worker/wrangler.toml
-# 무릎팍도사 — 범용 멀티마켓 CF Workers 설정
+﻿# markets/web/worker/wrangler.toml
+# 사주팔자 — 범용 멀티마켓 CF Workers 설정
 #
 # 사전 작업:
 #   1. `wrangler login` — CF 계정 인증
@@ -15,16 +15,16 @@
 # 배포:
 #   wrangler deploy
 
-name = "meisei-ai-web"
+name = "the-fate-web"
 main = "index.js"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 # ── 공개 환경 변수 ──────────────────────
 [vars]
-SERVICE_NAME = "MeiSei AI Web"
+SERVICE_NAME = "The Fate Web"
 # 앱 URL — 배포 후 실제 URL로 업데이트
-WEB_APP_URL = "https://kgg2512.github.io/mureupak-dosa/markets/web/app.html"
+WEB_APP_URL = "https://kgg2512.github.io/saju-paljja/markets/web/app.html"
 # LINE_MARKET: 이 Worker가 연결된 LINE OA의 기본 마켓 ("jp"/"th"/"tw")
 LINE_MARKET = "jp"
 

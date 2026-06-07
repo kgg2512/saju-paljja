@@ -1,5 +1,5 @@
-# markets/japan/worker/wrangler.toml
-# 命星AI — Japan CF Workers 설정
+﻿# markets/japan/worker/wrangler.toml
+# MEI — Japan CF Workers 설정
 #
 # 필수 사전 작업:
 #   1. `wrangler login` — CF 계정 인증
@@ -14,7 +14,7 @@
 # 배포:
 #   wrangler deploy
 
-name = "meisei-ai-japan"
+name = "the-fate-japan"
 main = "index.js"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
@@ -25,7 +25,7 @@ compatibility_flags = ["nodejs_compat"]
 # ── 환경 변수 (비밀 아닌 공개 설정) ──────────
 [vars]
 MARKET = "japan"
-SERVICE_NAME = "命星AI"
+SERVICE_NAME = "MEI"
 LIFF_URL = "https://liff.line.me/REPLACE_WITH_LIFF_ID"
 # 위 LIFF_URL은 LINE Developers Console에서 LIFF 앱 등록 후 업데이트
 
@@ -38,7 +38,7 @@ id = "REPLACE_WITH_KV_NAMESPACE_ID"
 preview_id = "REPLACE_WITH_KV_PREVIEW_ID"
 
 # ── 라우팅 ──────────────────────────────────
-# CF Workers URL: https://meisei-ai-japan.{CF_ACCOUNT}.workers.dev
+# CF Workers URL: https://the-fate-japan.{CF_ACCOUNT}.workers.dev
 # 커스텀 도메인: 추후 설정 가능
 
 # ── 로그 (개발용) ──────────────────────────

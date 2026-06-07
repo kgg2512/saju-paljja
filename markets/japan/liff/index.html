@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#06C755">
-  <title>命星AI — 四柱推命AIサービス</title>
+  <title>MEI — 四柱推命AIサービス</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
@@ -923,7 +923,7 @@
     <div class="result-container">
 
       <div class="result-top-bar">
-        <div class="result-brand">🌿 命星AI</div>
+        <div class="result-brand">🌿 MEI</div>
         <span class="result-type-badge" id="result-type-badge">四柱推命</span>
       </div>
 
@@ -1314,7 +1314,7 @@
 
     const typeLabel = state.type === 'saju' ? '四柱推命' : '相性占い';
     const preview = (state.result?.text || '').slice(0, 60) + '…';
-    const shareText = `✨ 命星AIで${typeLabel}しました！\n\n🌿 ${preview}\n\n▶ 今すぐ試す\nhttps://liff.line.me/${window.LIFF_ID || ''}\n#命星AI #四柱推命 #運勢`;
+    const shareText = `✨ MEIで${typeLabel}しました！\n\n🌿 ${preview}\n\n▶ 今すぐ試す\nhttps://liff.line.me/${window.LIFF_ID || ''}\n#MEI #四柱推命 #運勢`;
 
     // shareTargetPicker 지원 여부 확인
     if (liff.isInClient() && liff.isApiAvailable('shareTargetPicker')) {
