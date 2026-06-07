@@ -1250,7 +1250,7 @@ document.getElementById('payment-cta-btn').addEventListener('click', async () =>
   try {
     const WORKER_URL = window.WORKER_URL;
     if (!WORKER_URL || WORKER_URL === 'REPLACE_WITH_WORKER_URL') {
-      throw new Error('Worker URL not configured');
+      throw new Error('서비스 준비 중입니다. Service under maintenance. 準備中です。');
     }
 
     const resp = await fetch(`${WORKER_URL}/api/checkout`, {
@@ -1310,7 +1310,7 @@ async function handlePaymentReturn() {
   try {
     const WORKER_URL = window.WORKER_URL;
     if (!WORKER_URL || WORKER_URL === 'REPLACE_WITH_WORKER_URL') {
-      throw new Error('Worker URL not configured');
+      throw new Error('서비스 준비 중입니다. Service under maintenance. 準備中です。');
     }
 
     // CISO: session_id만 전송 — 결제 완료 후에만 /api/fortune 호출 가능

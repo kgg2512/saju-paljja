@@ -1,0 +1,63 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build site structure
+        run: |
+          mkdir -p _site/markets
+
+          # Landing page: docs/index.html → root
+          # ../markets/ → markets/ (docs/에서 올라가는 상대경로 수정)
+          sed 's|\.\./markets/|markets/|g' docs/index.html > _site/index.html
+
+          # markets/ 전체 복사 (CF Worker 소스 제외 — HTML/법무만)
+          cp -r markets/web _site/markets/web
+          cp -r markets/japan _site/markets/japan
+          cp -r markets/korea _site/markets/korea 2>/dev/null || true
+          cp -r markets/taiwan _site/markets/taiwan 2>/dev/null || true
+          cp -r markets/thailand _site/markets/thailand 2>/dev/null || true
+          cp -r markets/global _site/markets/global 2>/dev/null || true
+
+          # Worker 소스코드는 GitHub Pages에 노출하지 않음 (CISO 원칙)
+          find _site/markets -type d -name "worker" -exec rm -rf {} + 2>/dev/null || true
+
+          # OG 이미지 (있을 경우만)
+          [ -f docs/og-image.png ] && cp docs/og-image.png _site/og-image.png || true
+
+          echo "=== 배포 파일 구조 ==="
+          find _site -type f | sort
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
