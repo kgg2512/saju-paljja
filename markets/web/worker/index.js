@@ -23,13 +23,17 @@
 // ──────────────────────────────────────────
 // 마켓 설정 (markets.js와 동기화 유지)
 // ──────────────────────────────────────────
+// [CFO 20260607] Stripe unit_amount 수정 — smallest unit 기준
+//   JPY, VND : zero-decimal (unit_amount = 액면가)
+//   THB, TWD, PHP, MYR : 2-decimal (unit_amount = 액면가 * 100)
+//   Stripe 최소: JPY>=50, THB>=2000, TWD>=1500, PHP>=3000, VND>=10000, MYR>=200
 const MARKETS = {
-  jp: { price: 200, currency: 'jpy', lang: 'ja', name: 'MEI', platform: 'line', minAge: 18 },
-  th: { price: 39,  currency: 'thb', lang: 'th', name: 'MEI', platform: 'line', minAge: 18 },
-  tw: { price: 39,  currency: 'twd', lang: 'zh-TW', name: 'MEI', platform: 'line', minAge: 18 },
-  ph: { price: 59,  currency: 'php', lang: 'en', name: 'MEI', platform: 'web', minAge: 18 },
-  vn: { price: 25000, currency: 'vnd', lang: 'vi', name: 'MEI', platform: 'web', minAge: 18 },
-  my: { price: 6,   currency: 'myr', lang: 'ms', name: 'MEI', platform: 'web', minAge: 18 },
+  jp: { price: 500,   currency: 'jpy', lang: 'ja',    name: 'MEI', platform: 'line', minAge: 18 }, // JPY 500 (zero-decimal, 인상 200->500)
+  th: { price: 3900,  currency: 'thb', lang: 'th',    name: 'MEI', platform: 'line', minAge: 18 }, // THB 39.00 (2-decimal: 39*100)
+  tw: { price: 3900,  currency: 'twd', lang: 'zh-TW', name: 'MEI', platform: 'line', minAge: 18 }, // TWD 39.00 (2-decimal: 39*100)
+  ph: { price: 5900,  currency: 'php', lang: 'en',    name: 'MEI', platform: 'web',  minAge: 18 }, // PHP 59.00 (2-decimal: 59*100)
+  vn: { price: 25000, currency: 'vnd', lang: 'vi',    name: 'MEI', platform: 'web',  minAge: 18 }, // VND 25,000 (zero-decimal, 유지)
+  my: { price: 600,   currency: 'myr', lang: 'ms',    name: 'MEI', platform: 'web',  minAge: 18 }, // MYR 6.00 (2-decimal: 6*100)
 };
 
 function getMarket(marketParam) {
