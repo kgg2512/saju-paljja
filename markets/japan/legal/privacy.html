@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#06C755">
+  <title>プライバシーポリシー — 命星AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans JP', -apple-system, sans-serif;
+      font-size: 14px;
+      color: #1A1A2E;
+      background: #F7F8FA;
+      line-height: 1.8;
+    }
+    .header {
+      background: #06C755;
+      color: #fff;
+      padding: 20px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-back {
+      font-size: 20px;
+      cursor: pointer;
+      text-decoration: none;
+      color: #fff;
+    }
+    .header-title { font-size: 17px; font-weight: 700; }
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 20px 16px 48px;
+    }
+    .intro-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      border-left: 4px solid #06C755;
+    }
+    .intro-card p { font-size: 13px; color: #6B7280; }
+    .section {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #06C755;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #E8F9EE;
+    }
+    .section p, .section li {
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.8;
+      margin-bottom: 8px;
+    }
+    .section ul { padding-left: 20px; }
+    .section li { margin-bottom: 4px; }
+    .highlight-box {
+      background: #E8F9EE;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin: 12px 0;
+    }
+    .highlight-box p {
+      font-size: 13px;
+      color: #065F46;
+      margin-bottom: 0;
+      font-weight: 500;
+    }
+    .contact-card {
+      background: #F0FDF4;
+      border: 1px solid #BBF7D0;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .contact-card p { font-size: 13px; color: #065F46; }
+    .contact-card a { color: #06C755; font-weight: 700; }
+    .updated {
+      text-align: center;
+      font-size: 12px;
+      color: #9CA3AF;
+      padding: 16px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <a class="header-back" href="javascript:history.back()">←</a>
+    <div class="header-title">プライバシーポリシー</div>
+  </div>
+
+  <div class="container">
+
+    <div class="intro-card">
+      <p>
+        G2 Company Ltd.（以下「当社」）は、命星AIサービス（以下「本サービス」）における
+        個人情報の取扱いについて、以下のとおりプライバシーポリシーを定めます。<br><br>
+        本サービスのご利用をもって、本ポリシーに同意したものとみなします。
+      </p>
+    </div>
+
+    <!-- 1. 収集する情報 -->
+    <div class="section">
+      <div class="section-title">1. 収集する情報</div>
+      <p>本サービスは、以下の情報を収集します：</p>
+      <ul>
+        <li>
+          <strong>占い利用時：</strong>
+          生年月日（入力いただいた情報）。
+          この情報は占い結果の生成のみに使用され、サーバーには<strong>保存されません</strong>。
+        </li>
+        <li>
+          <strong>LINEプロフィール情報：</strong>
+          LINEログイン時に取得するユーザーID（匿名ID）。
+          氏名・電話番号・メールアドレスは取得しません。
+        </li>
+        <li>
+          <strong>決済情報：</strong>
+          クレジットカード情報は当社のサーバーには一切保存されません。
+          Stripe, Inc.が安全に処理します。
+        </li>
+        <li>
+          <strong>アクセスログ：</strong>
+          エラー検知・セキュリティ目的で、IPアドレス・タイムスタンプを
+          Cloudflareのシステムが一時的に記録することがあります（当社は直接管理しません）。
+        </li>
+      </ul>
+
+      <div class="highlight-box">
+        <p>
+          重要：生年月日はAIによる占い結果の生成後、即時に破棄されます。
+          データベースへの保存・第三者への提供は一切行いません。
+        </p>
+      </div>
+    </div>
+
+    <!-- 2. 利用目的 -->
+    <div class="section">
+      <div class="section-title">2. 情報の利用目的</div>
+      <p>収集した情報は、以下の目的にのみ使用します：</p>
+      <ul>
+        <li>四柱推命・相性占いの結果生成</li>
+        <li>決済処理の完了確認（Stripeと連携）</li>
+        <li>サービス障害・不正利用の検知</li>
+        <li>LINEメッセージの送受信（サービス案内）</li>
+      </ul>
+    </div>
+
+    <!-- 3. 第三者提供 -->
+    <div class="section">
+      <div class="section-title">3. 第三者への情報提供</div>
+      <p>
+        当社は、以下の場合を除き、収集した個人情報を第三者に提供しません：
+      </p>
+      <ul>
+        <li>
+          <strong>Stripe, Inc.：</strong>
+          決済処理のために必要な情報（金額・通貨）を共有します。
+          カード情報は当社に渡りません。
+        </li>
+        <li>
+          <strong>OpenAI, L.L.C.：</strong>
+          占い結果生成のため、算出した四柱データ（生年月日を含まない抽象データ）を送信します。
+        </li>
+        <li>
+          <strong>LY Corporation（LINE）：</strong>
+          LINEサービスの利用に必要な範囲で情報をやり取りします。
+        </li>
+        <li>
+          <strong>法令上の要求：</strong>
+          法令・規制・裁判所命令等に基づく場合。
+        </li>
+      </ul>
+    </div>
+
+    <!-- 4. Cookie・ローカルストレージ -->
+    <div class="section">
+      <div class="section-title">4. Cookie・ローカルストレージの使用</div>
+      <p>本サービスは以下の目的でのみローカルストレージを使用します：</p>
+      <ul>
+        <li>プライバシーポリシー同意状態の記録（再訪問時のポップアップスキップ）</li>
+        <li>UI の言語設定・テーマ設定の保存</li>
+      </ul>
+      <p>
+        生年月日・決済情報・個人を特定できる情報は
+        ローカルストレージに保存しません。
+      </p>
+    </div>
+
+    <!-- 5. データ保持期間 -->
+    <div class="section">
+      <div class="section-title">5. データ保持期間</div>
+      <ul>
+        <li><strong>生年月日：</strong>占い結果生成後、即時削除（サーバー保持なし）</li>
+        <li><strong>決済状態（決済IDのみ）：</strong>最大1時間（重複利用防止目的）</li>
+        <li><strong>アクセスログ：</strong>Cloudflareの保持ポリシーに準じる（通常30日以内）</li>
+        <li><strong>ローカルストレージ：</strong>ユーザーがブラウザデータを削除するまで</li>
+      </ul>
+    </div>
+
+    <!-- 6. セキュリティ -->
+    <div class="section">
+      <div class="section-title">6. セキュリティ対策</div>
+      <ul>
+        <li>すべての通信はHTTPS（TLS 1.2以上）で暗号化</li>
+        <li>APIキー・シークレットはCloudflare Secretsで管理（コードに含まない）</li>
+        <li>LINE Webhook受信時にHMAC-SHA256署名検証を実施</li>
+        <li>不正利用防止のためのRate Limiting（1ユーザー毎に分間5リクエスト上限）</li>
+        <li>入力値の厳格なバリデーション（SQLインジェクション・XSS対策）</li>
+      </ul>
+    </div>
+
+    <!-- 7. お子様のプライバシー -->
+    <div class="section">
+      <div class="section-title">7. お子様のプライバシー</div>
+      <p>
+        本サービスは18歳未満の方を対象としていません。
+        18歳未満の方のご利用は固くお断りしており、
+        サービス開始前に年齢確認を行っています。
+      </p>
+    </div>
+
+    <!-- 8. ポリシー変更 -->
+    <div class="section">
+      <div class="section-title">8. プライバシーポリシーの変更</div>
+      <p>
+        本ポリシーは、法令の改正や事業内容の変更に伴い、
+        適宜改定することがあります。
+        重要な変更がある場合は、LINEメッセージまたは本ページにてお知らせします。
+      </p>
+    </div>
+
+    <!-- 9. 適用法 -->
+    <div class="section">
+      <div class="section-title">9. 準拠法</div>
+      <p>
+        本ポリシーは、日本の個人情報の保護に関する法律（個人情報保護法・APPI）に
+        準拠して策定されています。
+      </p>
+    </div>
+
+    <!-- お問い合わせ -->
+    <div class="contact-card">
+      <p>
+        <strong>お問い合わせ・個人情報に関するご請求：</strong><br>
+        個人情報の開示・訂正・削除等のご請求は、下記までご連絡ください。<br>
+        <a href="mailto:kgg2512@gmail.com">kgg2512@gmail.com</a><br>
+        G2 Company Ltd. — 個人情報担当
+      </p>
+    </div>
+
+    <div class="updated">
+      制定日：2026年6月7日<br>
+      最終更新日：2026年6月7日
+    </div>
+
+  </div>
+
+</body>
+</html>
