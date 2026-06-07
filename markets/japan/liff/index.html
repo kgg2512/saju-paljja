@@ -683,6 +683,35 @@
       50%       { box-shadow: 0 0 0 12px rgba(6,199,85,0); }
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error Toast ── */
+    #error-toast {
+      display: none;
+      position: fixed;
+      bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+      left: 16px;
+      right: 16px;
+      z-index: 4000;
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-left: 4px solid #EF4444;
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      animation: slideUp 250ms ease;
+    }
+    #error-toast.active { display: flex; }
+    .error-toast-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .error-toast-body { flex: 1; }
+    .error-toast-title { font-size: 14px; font-weight: 700; color: #B91C1C; margin-bottom: 2px; }
+    .error-toast-msg { font-size: 12px; color: #6B7280; line-height: 1.5; }
+    .error-toast-close {
+      background: none; border: none; cursor: pointer;
+      font-size: 16px; color: #9CA3AF; padding: 0; flex-shrink: 0;
+    }
   </style>
 </head>
 
@@ -909,7 +938,7 @@
 
     <div class="form-cta">
       <button class="form-submit-btn" id="form-submit-btn" disabled>
-        点占い開始 ¥500 →
+        占い開始 ¥500 →
       </button>
     </div>
   </div>
@@ -993,6 +1022,16 @@
     <div class="loading-text" id="loading-text">AIが鑑定中…</div>
   </div>
 
+  <!-- 에러 토스트 (결제 실패 / 서버 오류) -->
+  <div id="error-toast">
+    <span class="error-toast-icon">⚠️</span>
+    <div class="error-toast-body">
+      <div class="error-toast-title" id="error-toast-title">エラーが発生しました</div>
+      <div class="error-toast-msg" id="error-toast-msg"></div>
+    </div>
+    <button class="error-toast-close" id="error-toast-close" aria-label="閉じる">✕</button>
+  </div>
+
 
   <script>
   /* ══════════════════════════════════════
@@ -1027,6 +1066,19 @@
     document.getElementById('loading-text').textContent = text || 'AIが鑑定中…';
     document.getElementById('loading-overlay').classList.toggle('active', visible);
   }
+
+  function showError(msg, title) {
+    const toast = document.getElementById('error-toast');
+    document.getElementById('error-toast-title').textContent = title || 'エラーが発生しました';
+    document.getElementById('error-toast-msg').textContent = msg || '';
+    toast.classList.add('active');
+    clearTimeout(window._errorTimer);
+    window._errorTimer = setTimeout(() => toast.classList.remove('active'), 6000);
+  }
+
+  document.getElementById('error-toast-close').addEventListener('click', () => {
+    document.getElementById('error-toast').classList.remove('active');
+  });
 
   /* ══════════════════════════════════════
      Step 1 — 동의 팝업
@@ -1220,7 +1272,7 @@
 
     } catch (err) {
       setLoading(false);
-      alert('エラーが発生しました。もう一度お試しください。\n' + err.message);
+      showError(err.message + ' — もう一度お試しください。', '決済エラー');
     }
   });
 
@@ -1268,7 +1320,7 @@
 
     } catch (err) {
       setLoading(false);
-      alert('結果の取得に失敗しました。お問い合わせください。');
+      showError('結果の取得に失敗しました。お問い合わせください。', '鑑定エラー');
       return false;
     }
   }
