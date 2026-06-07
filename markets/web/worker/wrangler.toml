@@ -1,0 +1,53 @@
+# markets/web/worker/wrangler.toml
+# 무릎팍도사 — 범용 멀티마켓 CF Workers 설정
+#
+# 사전 작업:
+#   1. `wrangler login` — CF 계정 인증
+#   2. KV 네임스페이스 생성:
+#      wrangler kv:namespace create MEISEI_WEB_KV
+#      → 생성된 id를 아래에 입력
+#   3. Secrets 등록:
+#      wrangler secret put OPENAI_API_KEY
+#      wrangler secret put STRIPE_SECRET_KEY
+#      wrangler secret put LINE_CHANNEL_SECRET
+#      wrangler secret put LINE_CHANNEL_ACCESS_TOKEN
+#
+# 배포:
+#   wrangler deploy
+
+name = "meisei-ai-web"
+main = "index.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ── 공개 환경 변수 ──────────────────────
+[vars]
+SERVICE_NAME = "MeiSei AI Web"
+# 앱 URL — 배포 후 실제 URL로 업데이트
+WEB_APP_URL = "https://kgg2512.github.io/mureupak-dosa/markets/web/app.html"
+# LINE_MARKET: 이 Worker가 연결된 LINE OA의 기본 마켓 ("jp"/"th"/"tw")
+LINE_MARKET = "jp"
+
+# ── KV 네임스페이스 ──────────────────────
+# 생성 명령: wrangler kv:namespace create MEISEI_WEB_KV
+[[kv_namespaces]]
+binding = "KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+preview_id = "REPLACE_WITH_KV_PREVIEW_ID"
+
+# ── 개발 설정 ──────────────────────────
+[dev]
+port = 8788
+local_protocol = "http"
+
+# ── 빌드 ──────────────────────────────
+[build]
+command = ""
+
+# ── Secrets 목록 (값은 wrangler secret put으로만 등록) ──
+# OPENAI_API_KEY          — GPT-4o mini 호출
+# STRIPE_SECRET_KEY       — Stripe 결제 처리
+# LINE_CHANNEL_SECRET     — LINE Webhook 서명 검증
+# LINE_CHANNEL_ACCESS_TOKEN — LINE 메시지 발송 (선택)
+#
+# ⚠️ 이 파일과 코드에 절대 하드코딩 금지

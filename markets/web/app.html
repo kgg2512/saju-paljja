@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#06C755">
+  <title>命星AI — AI占いサービス</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- window injection points — 배포 시 실제 값으로 교체 -->
+  <script>
+  window.WORKER_URL = 'REPLACE_WITH_WORKER_URL';
+  window.STRIPE_PK = 'REPLACE_WITH_STRIPE_PK';
+  </script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans JP', 'Noto Sans Thai', 'Noto Sans', sans-serif;
+      background: #F7F8FA;
+      color: #1A1A2E;
+      min-height: 100vh;
+    }
+
+    .app-wrap {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: #fff;
+      position: relative;
+      box-shadow: 0 0 40px rgba(0,0,0,0.08);
+    }
+
+    /* Screen control */
+    .screen { display: none; }
+    .screen.active { display: flex; }
+
+    /* ── 동의 팝업 ── */
+    #screen-consent {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(0,0,0,0.65);
+      align-items: flex-end;
+      justify-content: center;
+    }
+    #screen-consent.active { display: flex; }
+
+    .consent-sheet {
+      background: #fff;
+      border-radius: 20px 20px 0 0;
+      padding: 8px 0 0;
+      width: 100%;
+      max-width: 480px;
+      animation: slideUp 300ms ease;
+    }
+    .consent-handle {
+      width: 36px; height: 4px;
+      background: #E8ECF0; border-radius: 100px;
+      margin: 0 auto 20px;
+    }
+    .consent-inner { padding: 0 24px 32px; }
+    .consent-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .consent-brand-icon { font-size: 28px; }
+    .consent-brand-name { font-size: 22px; font-weight: 700; }
+    .consent-brand-name span { color: #06C755; }
+    .consent-desc {
+      font-size: 13px; color: #6B7280; line-height: 1.7;
+      background: #F7F8FA; border-radius: 10px;
+      padding: 12px 14px; margin-bottom: 16px;
+    }
+    .consent-checks { display: flex; flex-direction: column; gap: 0; margin-bottom: 20px; }
+    .consent-check-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid #F3F4F6; cursor: pointer;
+    }
+    .consent-check-item:last-child { border-bottom: none; }
+    .consent-checkbox {
+      width: 22px; height: 22px; min-width: 22px;
+      border: 2px solid #E8ECF0; border-radius: 6px;
+      cursor: pointer; -webkit-appearance: none; appearance: none;
+      margin-top: 1px; transition: all 150ms ease; flex-shrink: 0;
+    }
+    .consent-checkbox:checked { background: #06C755; border-color: #06C755; }
+    .consent-checkbox:checked::after {
+      content: ''; display: block; margin: 3px auto 0;
+      width: 6px; height: 11px;
+      border: 2px solid #fff; border-top: none; border-left: none;
+      transform: rotate(45deg);
+    }
+    .consent-check-text { font-size: 13px; line-height: 1.6; color: #374151; padding-top: 2px; }
+    .consent-check-text a { color: #06C755; text-decoration: underline; }
+    .consent-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; height: 54px; background: #06C755; color: #fff;
+      border: none; border-radius: 14px; font-family: inherit;
+      font-size: 16px; font-weight: 700; cursor: pointer; transition: all 150ms ease;
+    }
+    .consent-btn:disabled { background: #E8ECF0; color: #9CA3AF; cursor: not-allowed; }
+    .consent-btn:not(:disabled):active { transform: scale(0.98); }
+
+    /* ── 메뉴 화면 ── */
+    #screen-menu {
+      flex-direction: column; min-height: 100vh; background: #fff;
+    }
+    .menu-viral-bar {
+      background: #1A1A2E; color: rgba(255,255,255,0.85);
+      text-align: center; padding: 10px 16px; font-size: 13px; letter-spacing: 0.02em;
+    }
+    .menu-viral-bar strong { color: #06C755; }
+    .menu-hero {
+      background: linear-gradient(180deg, #E8F9EE 0%, #fff 100%);
+      padding: 40px 20px 28px; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .menu-hero-stars {
+      position: absolute; top: 14px; left: 0; right: 0;
+      display: flex; justify-content: center; gap: 16px;
+      font-size: 11px; color: #B2E6C8; animation: sparkle 4s ease infinite;
+    }
+    .menu-hero-icon {
+      font-size: 56px; display: block; margin-bottom: 10px;
+      filter: drop-shadow(0 4px 16px rgba(6,199,85,0.3));
+    }
+    .menu-hero-title {
+      font-size: 30px; font-weight: 700; color: #1A1A2E;
+      letter-spacing: -0.02em; margin-bottom: 6px;
+    }
+    .menu-hero-title span { color: #06C755; }
+    .menu-hero-sub { font-size: 13px; color: #6B7280; line-height: 1.6; margin-bottom: 14px; }
+    .menu-hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(6,199,85,0.12); color: #05A847;
+      border-radius: 100px; padding: 5px 14px;
+      font-size: 12px; font-weight: 700;
+    }
+    .menu-section-title {
+      font-size: 12px; font-weight: 700; color: #9CA3AF;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 20px 16px 10px;
+    }
+    .menu-cards {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; padding: 0 16px;
+    }
+    .menu-card {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 8px; padding: 22px 12px; background: #fff;
+      border: 2px solid #E8ECF0; border-radius: 18px;
+      cursor: pointer; text-align: center; transition: all 250ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .menu-card:active { border-color: #06C755; background: #E8F9EE; transform: scale(0.97); }
+    .menu-card-emoji { font-size: 38px; }
+    .menu-card-title { font-size: 15px; font-weight: 700; color: #1A1A2E; }
+    .menu-card-sub { font-size: 10px; color: #6B7280; }
+    .menu-card-desc { font-size: 11px; color: #6B7280; line-height: 1.5; }
+    .menu-card-price {
+      font-size: 13px; font-weight: 700; color: #06C755;
+      background: #E8F9EE; padding: 3px 10px; border-radius: 100px;
+    }
+    .menu-footer {
+      display: flex; align-items: center; justify-content: center;
+      gap: 16px; padding: 28px 16px 24px; margin-top: auto;
+    }
+    .menu-footer a { font-size: 11px; color: #9CA3AF; text-decoration: none; }
+    .menu-footer-sep { width: 1px; height: 10px; background: #E8ECF0; }
+
+    /* ── 입력 폼 화면 ── */
+    #screen-form { flex-direction: column; min-height: 100vh; background: #fff; }
+    .form-header {
+      display: flex; align-items: center; gap: 14px;
+      padding: 20px 16px 0; margin-bottom: 8px;
+    }
+    .form-back-btn {
+      width: 36px; height: 36px; display: flex; align-items: center;
+      justify-content: center; background: #F7F8FA; border-radius: 50%;
+      border: none; cursor: pointer; font-size: 16px; color: #374151;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-title-wrap { flex: 1; }
+    .form-screen-title { font-size: 18px; font-weight: 700; color: #1A1A2E; }
+    .form-screen-subtitle { font-size: 12px; color: #9CA3AF; margin-top: 2px; }
+    .form-body { padding: 16px 16px 0; flex: 1; }
+    .form-person-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 14px; font-weight: 700; color: #374151;
+      margin-bottom: 12px; padding-bottom: 8px;
+      border-bottom: 2px solid #E8F9EE;
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-label {
+      display: block; font-size: 13px; font-weight: 500;
+      color: #6B7280; margin-bottom: 6px;
+    }
+    .date-row { display: grid; grid-template-columns: 1.2fr 0.9fr 0.9fr; gap: 8px; }
+    .form-select, .form-input {
+      height: 52px; border: 1.5px solid #E8ECF0; border-radius: 12px;
+      padding: 0 14px; font-family: inherit; font-size: 16px; color: #1A1A2E;
+      background: #fff; width: 100%; outline: none;
+      -webkit-appearance: none; appearance: none;
+      transition: border-color 150ms ease, box-shadow 150ms ease;
+    }
+    .form-select-wrap { position: relative; }
+    .form-select-wrap::after {
+      content: '▾'; position: absolute; right: 14px; top: 50%;
+      transform: translateY(-50%); color: #9CA3AF; pointer-events: none; font-size: 12px;
+    }
+    .form-select:focus, .form-input:focus {
+      border-color: #06C755; border-width: 2px;
+      box-shadow: 0 0 0 3px rgba(6,199,85,0.12);
+    }
+    .gender-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .gender-btn {
+      height: 52px; border: 1.5px solid #E8ECF0; border-radius: 12px;
+      background: #fff; font-family: inherit; font-size: 14px; font-weight: 500;
+      color: #6B7280; cursor: pointer; transition: all 150ms ease;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .gender-btn.selected {
+      border-color: #06C755; border-width: 2px;
+      background: #E8F9EE; color: #05A847; font-weight: 700;
+    }
+    .form-divider { height: 1px; background: #F3F4F6; margin: 20px 0; }
+    .form-note {
+      font-size: 12px; color: #9CA3AF; line-height: 1.6;
+      background: #F7F8FA; border-radius: 10px;
+      padding: 10px 12px; margin-bottom: 16px;
+    }
+    .form-cta {
+      position: sticky; bottom: 0; background: #fff;
+      border-top: 1px solid #E8ECF0; padding: 12px 16px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    }
+    .form-submit-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; height: 54px; background: #06C755; color: #fff;
+      border: none; border-radius: 14px; font-family: inherit;
+      font-size: 16px; font-weight: 700; cursor: pointer; transition: all 150ms ease;
+      box-shadow: 0 4px 16px rgba(6,199,85,0.3);
+    }
+    .form-submit-btn:active { transform: scale(0.98); background: #05A847; }
+    .form-submit-btn:disabled {
+      background: #E8ECF0; color: #9CA3AF; box-shadow: none; cursor: not-allowed;
+    }
+
+    /* ── 결제 화면 ── */
+    #screen-payment {
+      flex-direction: column; min-height: 100vh; background: #fff; align-items: center;
+    }
+    .payment-wrap {
+      width: 100%; padding: 40px 24px;
+      display: flex; flex-direction: column; align-items: center; gap: 24px;
+    }
+    .payment-icon { font-size: 64px; }
+    .payment-title { font-size: 22px; font-weight: 700; text-align: center; color: #1A1A2E; }
+    .payment-price-box {
+      background: linear-gradient(135deg, #E8F9EE 0%, #f0fff6 100%);
+      border: 2px solid #06C755; border-radius: 20px;
+      padding: 24px 32px; text-align: center; width: 100%;
+    }
+    .payment-price-label { font-size: 13px; color: #6B7280; margin-bottom: 4px; }
+    .payment-price-amount { font-size: 48px; font-weight: 700; color: #06C755; line-height: 1; }
+    .payment-price-tax { font-size: 12px; color: #9CA3AF; margin-top: 6px; }
+    .payment-desc { font-size: 14px; color: #6B7280; text-align: center; line-height: 1.7; }
+    .payment-cta-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; height: 60px; background: #06C755; color: #fff;
+      border: none; border-radius: 16px; font-family: inherit;
+      font-size: 18px; font-weight: 700; cursor: pointer; transition: all 150ms ease;
+      box-shadow: 0 6px 24px rgba(6,199,85,0.4); animation: pulse-green 2s infinite;
+    }
+    .payment-cta-btn:active { transform: scale(0.98); animation: none; }
+    .payment-security {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: #9CA3AF;
+    }
+    .payment-back-btn {
+      background: transparent; border: 1px solid #E8ECF0;
+      border-radius: 10px; padding: 10px 20px;
+      font-family: inherit; font-size: 14px; color: #9CA3AF; cursor: pointer;
+    }
+
+    /* ── 결과 화면 ── */
+    #screen-result { flex-direction: column; min-height: 100vh; background: #0F0F1A; }
+    .result-bg {
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse at top, #1A2E1A 0%, #0F0F1A 60%);
+      pointer-events: none; z-index: 0;
+    }
+    .result-container {
+      position: relative; z-index: 1; padding: 24px 16px;
+      display: flex; flex-direction: column; min-height: 100vh;
+    }
+    .result-top-bar {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
+    }
+    .result-brand {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 16px; font-weight: 700; color: rgba(255,255,255,0.9);
+    }
+    .result-type-badge {
+      background: rgba(6,199,85,0.15); color: #06C755;
+      border: 1px solid rgba(6,199,85,0.3); border-radius: 100px;
+      padding: 4px 12px; font-size: 12px; font-weight: 700;
+    }
+    .pillars-wrap {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 8px; margin-bottom: 20px;
+    }
+    .pillar-card {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px; padding: 14px 6px;
+    }
+    .pillar-kanji { font-size: 22px; color: #F5A623; }
+    .pillar-reading { font-size: 10px; color: rgba(255,255,255,0.5); letter-spacing: 0.05em; }
+    .pillar-name { font-size: 11px; color: rgba(255,255,255,0.4); }
+    .result-content-card {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px; padding: 20px; margin-bottom: 16px;
+      backdrop-filter: blur(10px);
+    }
+    .result-section-title {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 700; color: #06C755;
+      letter-spacing: 0.05em; margin-bottom: 12px;
+    }
+    .result-text {
+      font-size: 15px; line-height: 2; color: rgba(255,255,255,0.88);
+      letter-spacing: 0.02em; white-space: pre-wrap;
+    }
+    .score-display {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      padding: 24px; background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; margin-bottom: 16px;
+    }
+    .score-label { font-size: 13px; color: rgba(255,255,255,0.5); font-weight: 500; }
+    .score-number { font-size: 64px; font-weight: 700; color: #F5A623; line-height: 1; }
+    .score-max { font-size: 24px; color: rgba(255,255,255,0.3); }
+    .score-stars { font-size: 20px; letter-spacing: 4px; color: #F5A623; }
+    .result-disclaimer {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px; padding: 12px 14px;
+      font-size: 11px; color: rgba(255,255,255,0.35); line-height: 1.7; margin-bottom: 20px;
+    }
+    .share-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; height: 56px; background: #7C5CBF; color: #fff;
+      border: none; border-radius: 100px; font-family: inherit;
+      font-size: 16px; font-weight: 700; cursor: pointer; transition: all 150ms ease;
+      box-shadow: 0 4px 20px rgba(124,92,191,0.4); animation: pulse-purple 2s infinite;
+    }
+    .share-btn:active { transform: scale(0.97); animation: none; }
+    .result-retry-btn {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      width: 100%; height: 44px; background: transparent;
+      color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 100px; font-family: inherit; font-size: 14px;
+      cursor: pointer; margin-top: 10px; -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── 로딩 오버레이 ── */
+    #loading-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(15,15,26,0.85); z-index: 3000;
+      flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    }
+    #loading-overlay.active { display: flex; }
+    .loading-spinner {
+      width: 44px; height: 44px;
+      border: 3px solid rgba(6,199,85,0.3); border-top-color: #06C755;
+      border-radius: 50%; animation: spin 700ms linear infinite;
+    }
+    .loading-text { font-size: 15px; color: rgba(255,255,255,0.7); }
+
+    /* ── 애니메이션 ── */
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    @keyframes sparkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    @keyframes pulse-green {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(6,199,85,0.5); }
+      50% { box-shadow: 0 0 0 12px rgba(6,199,85,0); }
+    }
+    @keyframes pulse-purple {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(124,92,191,0.5); }
+      50% { box-shadow: 0 0 0 12px rgba(124,92,191,0); }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+
+<body>
+<div class="app-wrap">
+
+  <!-- ════════════════════ 동의 팝업 ════════════════════ -->
+  <div id="screen-consent" class="screen active">
+    <div class="consent-sheet">
+      <div class="consent-handle"></div>
+      <div class="consent-inner">
+        <div class="consent-brand">
+          <span class="consent-brand-icon">🌿</span>
+          <div>
+            <div class="consent-brand-name" id="consent-brand-name">命星<span>AI</span></div>
+            <div id="consent-brand-sub" style="font-size:11px;color:#9CA3AF;">AI占いサービス</div>
+          </div>
+        </div>
+        <div class="consent-desc" id="consent-desc">
+          占い結果の生成のため、生年月日を一時的に利用します。データは処理後即時削除されます。<br>
+          <strong id="consent-age-text">18歳以上の方のみご利用いただけます。</strong>
+        </div>
+        <div class="consent-checks">
+          <label class="consent-check-item">
+            <input type="checkbox" id="check-age" class="consent-checkbox">
+            <span class="consent-check-text" id="check-age-label">18歳以上であることを確認しました</span>
+          </label>
+          <label class="consent-check-item">
+            <input type="checkbox" id="check-privacy" class="consent-checkbox">
+            <span class="consent-check-text" id="check-privacy-label">
+              <a href="../../shared/legal/privacy.html" target="_blank" id="privacy-link">プライバシーポリシー</a>に同意します
+            </span>
+          </label>
+          <label class="consent-check-item">
+            <input type="checkbox" id="check-terms" class="consent-checkbox">
+            <span class="consent-check-text" id="check-terms-label">
+              <a href="../../shared/legal/terms.html" target="_blank" id="terms-link">利用規約</a>を確認しました
+            </span>
+          </label>
+        </div>
+        <button id="consent-btn" class="consent-btn" disabled id="consent-btn-text">
+          占いを始める 🌿
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════ 메인 메뉴 ════════════════════ -->
+  <div id="screen-menu" class="screen">
+    <div class="menu-viral-bar">
+      <strong id="viral-bar-text">✦ みんな最近これで占ってる ✦</strong>
+    </div>
+    <div class="menu-hero">
+      <div class="menu-hero-stars">✦ ✧ ✦ ✧ ✦ ✧ ✦</div>
+      <span class="menu-hero-icon">🌿</span>
+      <div class="menu-hero-title" id="hero-title">命星<span>AI</span></div>
+      <div class="menu-hero-sub" id="hero-sub">あなたの運命をAIが読み解く<br>四柱推命 × 人工知能</div>
+      <span class="menu-hero-badge" id="hero-badge">✨ 1占い ¥200</span>
+    </div>
+    <div class="menu-section-title" id="menu-section-label">占いを選んでください</div>
+    <div class="menu-cards">
+      <button class="menu-card" id="menu-saju" data-type="saju">
+        <span class="menu-card-emoji">🔮</span>
+        <div class="menu-card-title" id="card-saju-title">四柱推命</div>
+        <div class="menu-card-sub" id="card-saju-sub">しちゅうすいめい</div>
+        <div class="menu-card-desc" id="card-saju-desc">性格・才能<br>今年の運勢</div>
+        <span class="menu-card-price" id="card-saju-price">¥200</span>
+      </button>
+      <button class="menu-card" id="menu-gung" data-type="compatibility">
+        <span class="menu-card-emoji">💞</span>
+        <div class="menu-card-title" id="card-gung-title">相性占い</div>
+        <div class="menu-card-sub" id="card-gung-sub">あいしょううらない</div>
+        <div class="menu-card-desc" id="card-gung-desc">ふたりの縁<br>相性スコア</div>
+        <span class="menu-card-price" id="card-gung-price">¥200</span>
+      </button>
+    </div>
+    <div class="menu-footer">
+      <a href="../../shared/legal/privacy.html" id="footer-privacy">プライバシーポリシー</a>
+      <div class="menu-footer-sep"></div>
+      <a href="../../shared/legal/terms.html" id="footer-terms">利用規約</a>
+    </div>
+  </div>
+
+  <!-- ════════════════════ 입력 폼 ════════════════════ -->
+  <div id="screen-form" class="screen">
+    <div class="form-header">
+      <button class="form-back-btn" id="form-back-btn">←</button>
+      <div class="form-title-wrap">
+        <div class="form-screen-title" id="form-title">四柱推命</div>
+        <div class="form-screen-subtitle" id="form-subtitle">生年月日を入力してください</div>
+      </div>
+    </div>
+    <div class="form-body">
+      <div class="form-person-label">
+        <span>🙋</span> <span id="you-label">あなたの情報</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="dob-label">生年月日</label>
+        <div class="date-row">
+          <div class="form-select-wrap">
+            <select class="form-select" id="year1"><option value="" id="year-placeholder">-- 年</option></select>
+          </div>
+          <div class="form-select-wrap">
+            <select class="form-select" id="month1"><option value="" id="month-placeholder">-- 月</option></select>
+          </div>
+          <div class="form-select-wrap">
+            <select class="form-select" id="day1"><option value="" id="day-placeholder">-- 日</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="time-label">生まれた時間帯（任意）</label>
+        <div class="form-select-wrap">
+          <select class="form-select" id="time1"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="gender-label">性別</label>
+        <div class="gender-row">
+          <button class="gender-btn" id="gender-male" data-gender="male">♂ <span id="male-label">男性</span></button>
+          <button class="gender-btn" id="gender-female" data-gender="female">♀ <span id="female-label">女性</span></button>
+        </div>
+      </div>
+
+      <!-- 궁합 상대방 입력 -->
+      <div id="partner-section" style="display:none;">
+        <div class="form-divider"></div>
+        <div class="form-person-label">
+          <span>💕</span> <span id="partner-label">お相手の情報</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="partner-dob-label">お相手の生年月日</label>
+          <div class="date-row">
+            <div class="form-select-wrap">
+              <select class="form-select" id="year2"><option value="">-- 年</option></select>
+            </div>
+            <div class="form-select-wrap">
+              <select class="form-select" id="month2"><option value="">-- 月</option></select>
+            </div>
+            <div class="form-select-wrap">
+              <select class="form-select" id="day2"><option value="">-- 日</option></select>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="partner-gender-label">お相手の性別</label>
+          <div class="gender-row">
+            <button class="gender-btn" id="gender2-male" data-gender2="male">♂ <span id="male2-label">男性</span></button>
+            <button class="gender-btn" id="gender2-female" data-gender2="female">♀ <span id="female2-label">女性</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-note" id="form-note">
+        🔒 入力された情報は占い結果の生成のみに使用し、サーバーには保存されません。
+      </div>
+    </div>
+    <div class="form-cta">
+      <button class="form-submit-btn" id="form-submit-btn" disabled>
+        <span id="submit-btn-text">占い開始 ¥200 →</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ════════════════════ 결제 화면 ════════════════════ -->
+  <div id="screen-payment" class="screen">
+    <div class="payment-wrap">
+      <span class="payment-icon">✨</span>
+      <div class="payment-title" id="payment-title">AIが鑑定します</div>
+      <div class="payment-price-box">
+        <div class="payment-price-label" id="payment-price-label">鑑定料金</div>
+        <div class="payment-price-amount" id="payment-price-amount">¥200</div>
+        <div class="payment-price-tax" id="payment-price-tax">税込・ワンタイム</div>
+      </div>
+      <div class="payment-desc" id="payment-desc">
+        ボタンを1回タップするだけで<br>安全なStripe決済ページへ移動します。
+      </div>
+      <button class="payment-cta-btn" id="payment-cta-btn">
+        💳 <span id="payment-cta-text">今すぐ決済する</span>
+      </button>
+      <div class="payment-security">
+        🔒 <span id="payment-security-text">Stripe による安全な決済</span>
+      </div>
+      <button class="payment-back-btn" id="payment-back-btn" style="margin-top:8px;">
+        <span id="payment-back-text">← 戻る</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ════════════════════ 결과 화면 ════════════════════ -->
+  <div id="screen-result" class="screen">
+    <div class="result-bg"></div>
+    <div class="result-container">
+      <div class="result-top-bar">
+        <div class="result-brand">🌿 <span id="result-brand-name">命星AI</span></div>
+        <span class="result-type-badge" id="result-type-badge">四柱推命</span>
+      </div>
+      <div class="pillars-wrap" id="pillars-wrap">
+        <div class="pillar-card">
+          <span class="pillar-kanji" id="pillar-year-k">甲</span>
+          <span class="pillar-reading" id="pillar-year-r">きのえ</span>
+          <span class="pillar-name" id="pillar-year-name">年柱</span>
+        </div>
+        <div class="pillar-card">
+          <span class="pillar-kanji" id="pillar-month-k">子</span>
+          <span class="pillar-reading" id="pillar-month-r">ね</span>
+          <span class="pillar-name" id="pillar-month-name">月柱</span>
+        </div>
+        <div class="pillar-card">
+          <span class="pillar-kanji" id="pillar-day-k">壬</span>
+          <span class="pillar-reading" id="pillar-day-r">みずのえ</span>
+          <span class="pillar-name" id="pillar-day-name">日柱</span>
+        </div>
+        <div class="pillar-card">
+          <span class="pillar-kanji" id="pillar-time-k">午</span>
+          <span class="pillar-reading" id="pillar-time-r">うま</span>
+          <span class="pillar-name" id="pillar-time-name">時柱</span>
+        </div>
+      </div>
+      <div class="score-display" id="score-display" style="display:none;">
+        <span class="score-label" id="score-label">相性スコア</span>
+        <div>
+          <span class="score-number" id="score-number">82</span>
+          <span class="score-max">/100</span>
+        </div>
+        <div class="score-stars" id="score-stars">★★★★☆</div>
+      </div>
+      <div class="result-content-card">
+        <div class="result-section-title">✦ <span id="result-section-title">鑑定結果</span></div>
+        <div class="result-text" id="result-text">読み込み中…</div>
+      </div>
+      <div class="result-disclaimer" id="result-disclaimer">
+        ※本結果はAIによる自動生成です。予言・保証ではございません。
+      </div>
+      <button class="share-btn" id="share-btn">
+        <span id="share-icon">📤</span>
+        <span id="share-btn-text">シェアする</span>
+      </button>
+      <button class="result-retry-btn" id="retry-btn">
+        <span id="retry-btn-text">↩ もう一度占う</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 로딩 오버레이 -->
+  <div id="loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text" id="loading-text">AIが鑑定中…</div>
+  </div>
+
+</div><!-- /app-wrap -->
+
+<script>
+/* ══════════════════════════════════════
+   마켓별 i18n 설정
+   ══════════════════════════════════════ */
+const MARKET_I18N = {
+  jp: {
+    lang: 'ja',
+    brandName: '命星AI',
+    brandSub: 'AI占いサービス',
+    viralBar: '✦ みんな最近これで占ってる ✦',
+    heroTitle: '命星AI',
+    heroSub: 'あなたの運命をAIが読み解く<br>四柱推命 × 人工知能',
+    heroBadge: '✨ 1占い ¥200',
+    menuSection: '占いを選んでください',
+    sajuTitle: '四柱推命', sajuSub: 'しちゅうすいめい', sajuDesc: '性格・才能<br>今年の運勢',
+    gungTitle: '相性占い', gungSub: 'あいしょううらない', gungDesc: 'ふたりの縁<br>相性スコア',
+    priceDisplay: '¥200',
+    consentDesc: '占い結果の生成のため、生年月日を一時的に利用します。データは処理後即時削除されます。',
+    consentAge: '18歳以上の方のみご利用いただけます。',
+    checkAge: '18歳以上であることを確認しました',
+    checkPrivacy: 'プライバシーポリシーに同意します',
+    checkTerms: '利用規約を確認しました',
+    consentBtn: '占いを始める 🌿',
+    formSubtitle: '生年月日を入力してください',
+    youLabel: 'あなたの情報',
+    dobLabel: '生年月日',
+    timeLabel: '生まれた時間帯（任意）',
+    genderLabel: '性別', maleLabel: '男性', femaleLabel: '女性',
+    partnerLabel: 'お相手の情報', partnerDobLabel: 'お相手の生年月日', partnerGenderLabel: 'お相手の性別',
+    formNote: '🔒 入力された情報は占い結果の生成のみに使用し、サーバーには保存されません。',
+    submitBtn: (price) => `占い開始 ${price} →`,
+    payTitle: 'AIが鑑定します', payLabel: '鑑定料金',
+    payAmount: '¥200', payTax: '税込・ワンタイム',
+    payDesc: 'ボタンを1回タップするだけで<br>安全なStripe決済ページへ移動します。',
+    payCta: '今すぐ決済する', paySecurity: 'Stripe による安全な決済', payBack: '← 戻る',
+    loadingCheckout: '決済ページを準備中…', loadingFortune: 'AIが鑑定中…',
+    sajuBadge: '四柱推命', gungBadge: '相性占い',
+    pillarNames: ['年柱', '月柱', '日柱', '時柱'],
+    scoreLabel: '相性スコア',
+    resultSection: '鑑定結果',
+    disclaimer: '※本結果はAIによる自動生成です。予言・保証ではございません。',
+    shareBtn: 'シェアする',
+    shareMsg: (type, preview, url) => `✨ 命星AIで${type === 'saju' ? '四柱推命' : '相性占い'}しました！\n\n🌿 ${preview}\n\n▶ 今すぐ試す\n${url}\n#命星AI #四柱推命`,
+    retryBtn: '↩ もう一度占う',
+    timeOptions: [
+      ['不明','わからない'],['子','子の刻（23:00-1:00）'],['丑','丑の刻（1:00-3:00）'],
+      ['寅','寅の刻（3:00-5:00）'],['卯','卯の刻（5:00-7:00）'],['辰','辰の刻（7:00-9:00）'],
+      ['巳','巳の刻（9:00-11:00）'],['午','午の刻（11:00-13:00）'],['未','未の刻（13:00-15:00）'],
+      ['申','申の刻（15:00-17:00）'],['酉','酉の刻（17:00-19:00）'],['戌','戌の刻（19:00-21:00）'],
+      ['亥','亥の刻（21:00-23:00）'],
+    ],
+    yearSuffix: '年', monthSuffix: '月', daySuffix: '日',
+    footerPrivacy: 'プライバシーポリシー', footerTerms: '利用規約',
+  },
+  th: {
+    lang: 'th',
+    brandName: 'MeiSei AI',
+    brandSub: 'บริการดูดวง AI',
+    viralBar: '✦ ทุกคนกำลังใช้นี้อยู่ ✦',
+    heroTitle: 'MeiSei AI',
+    heroSub: 'AI อ่านโชคชะตาของคุณ<br>โหราศาสตร์จีน × ปัญญาประดิษฐ์',
+    heroBadge: '✨ ดูดวง ฿39',
+    menuSection: 'เลือกประเภทการดูดวง',
+    sajuTitle: 'ดูดวงตนเอง', sajuSub: 'โหราศาสตร์จีน', sajuDesc: 'นิสัย ความสามารถ<br>ดวงชะตาปีนี้',
+    gungTitle: 'ดูความเข้ากัน', gungSub: 'ดูดวงคู่', gungDesc: 'ดวงของสองคน<br>คะแนนความเข้ากัน',
+    priceDisplay: '฿39',
+    consentDesc: 'เราใช้วันเกิดของคุณเพื่อสร้างผลการดูดวงเท่านั้น ข้อมูลจะถูกลบทันทีหลังประมวลผล',
+    consentAge: 'สำหรับผู้ที่มีอายุ 18 ปีขึ้นไปเท่านั้น',
+    checkAge: 'ฉันยืนยันว่ามีอายุ 18 ปีขึ้นไป',
+    checkPrivacy: 'ยอมรับนโยบายความเป็นส่วนตัว',
+    checkTerms: 'รับทราบข้อกำหนดการใช้งาน',
+    consentBtn: 'เริ่มดูดวง 🌿',
+    formSubtitle: 'กรุณากรอกวันเกิด',
+    youLabel: 'ข้อมูลของคุณ',
+    dobLabel: 'วันเกิด',
+    timeLabel: 'เวลาเกิด (ไม่บังคับ)',
+    genderLabel: 'เพศ', maleLabel: 'ชาย', femaleLabel: 'หญิง',
+    partnerLabel: 'ข้อมูลคู่ของคุณ', partnerDobLabel: 'วันเกิดคู่ของคุณ', partnerGenderLabel: 'เพศของคู่',
+    formNote: '🔒 ข้อมูลที่กรอกจะถูกใช้เพื่อการดูดวงเท่านั้น ไม่มีการบันทึกข้อมูล',
+    submitBtn: (price) => `เริ่มดูดวง ${price} →`,
+    payTitle: 'AI จะทำนายให้คุณ', payLabel: 'ค่าบริการ',
+    payAmount: '฿39', payTax: 'รวมภาษี ครั้งเดียว',
+    payDesc: 'แตะปุ่มเพียงครั้งเดียว<br>เพื่อไปยังหน้าชำระเงิน Stripe ที่ปลอดภัย',
+    payCta: 'ชำระเงินเดี๋ยวนี้', paySecurity: 'การชำระเงินปลอดภัยโดย Stripe', payBack: '← กลับ',
+    loadingCheckout: 'กำลังเตรียมหน้าชำระเงิน…', loadingFortune: 'AI กำลังทำนาย…',
+    sajuBadge: 'ดูดวง', gungBadge: 'ดูความเข้ากัน',
+    pillarNames: ['เสาปี', 'เสาเดือน', 'เสาวัน', 'เสาเวลา'],
+    scoreLabel: 'คะแนนความเข้ากัน',
+    resultSection: 'ผลการทำนาย',
+    disclaimer: '※ ผลลัพธ์นี้สร้างโดย AI โดยอัตโนมัติ ไม่ใช่การพยากรณ์หรือการรับประกัน',
+    shareBtn: 'แชร์',
+    shareMsg: (type, preview, url) => `✨ ดู${type === 'saju' ? 'ดวง' : 'ความเข้ากัน'}กับ MeiSei AI แล้ว!\n\n🌿 ${preview}\n\n▶ ลองเลย\n${url}\n#MeiSeiAI #ดูดวง`,
+    retryBtn: '↩ ดูดวงอีกครั้ง',
+    timeOptions: [
+      ['不明','ไม่ทราบ'],['子','ชื่อ (23:00-1:00)'],['丑','ฉ่ำ (1:00-3:00)'],
+      ['寅','ขาล (3:00-5:00)'],['卯','เถาะ (5:00-7:00)'],['辰','มะโรง (7:00-9:00)'],
+      ['巳','มะเส็ง (9:00-11:00)'],['午','มะเมีย (11:00-13:00)'],['未','มะแม (13:00-15:00)'],
+      ['申','วอก (15:00-17:00)'],['酉','ระกา (17:00-19:00)'],['戌','จอ (19:00-21:00)'],
+      ['亥','กุน (21:00-23:00)'],
+    ],
+    yearSuffix: '', monthSuffix: '', daySuffix: '',
+    footerPrivacy: 'นโยบายความเป็นส่วนตัว', footerTerms: 'ข้อกำหนดการใช้งาน',
+  },
+  tw: {
+    lang: 'zh-TW',
+    brandName: '命星AI',
+    brandSub: 'AI算命服務',
+    viralBar: '✦ 大家都在用這個算命 ✦',
+    heroTitle: '命星AI',
+    heroSub: 'AI解讀你的命運<br>八字命理 × 人工智慧',
+    heroBadge: '✨ 一次算命 NT$39',
+    menuSection: '請選擇算命類型',
+    sajuTitle: '八字算命', sajuSub: 'bā zì suàn mìng', sajuDesc: '性格才能<br>今年運勢',
+    gungTitle: '合婚配對', gungSub: 'hé hūn pèi duì', gungDesc: '兩人緣分<br>相性分數',
+    priceDisplay: 'NT$39',
+    consentDesc: '我們只使用您的生日來產生算命結果，資料處理後立即刪除。',
+    consentAge: '僅限18歲以上使用。',
+    checkAge: '我確認我已年滿18歲',
+    checkPrivacy: '同意隱私政策',
+    checkTerms: '已閱讀服務條款',
+    consentBtn: '開始算命 🌿',
+    formSubtitle: '請輸入生日',
+    youLabel: '您的資料',
+    dobLabel: '生日',
+    timeLabel: '出生時辰（選填）',
+    genderLabel: '性別', maleLabel: '男性', femaleLabel: '女性',
+    partnerLabel: '對方資料', partnerDobLabel: '對方生日', partnerGenderLabel: '對方性別',
+    formNote: '🔒 輸入的資料僅用於生成算命結果，不會儲存在伺服器上。',
+    submitBtn: (price) => `開始算命 ${price} →`,
+    payTitle: 'AI將為您算命', payLabel: '算命費用',
+    payAmount: 'NT$39', payTax: '含稅・單次付費',
+    payDesc: '只需點擊一次按鈕<br>即可前往安全的 Stripe 付款頁面。',
+    payCta: '立即付款', paySecurity: 'Stripe 安全付款', payBack: '← 返回',
+    loadingCheckout: '正在準備付款頁面…', loadingFortune: 'AI算命中…',
+    sajuBadge: '八字', gungBadge: '合婚',
+    pillarNames: ['年柱', '月柱', '日柱', '時柱'],
+    scoreLabel: '相性分數',
+    resultSection: '算命結果',
+    disclaimer: '※本結果由AI自動生成，非預言或保證。',
+    shareBtn: '分享',
+    shareMsg: (type, preview, url) => `✨ 用命星AI算了${type === 'saju' ? '八字' : '合婚'}！\n\n🌿 ${preview}\n\n▶ 立即體驗\n${url}\n#命星AI #八字`,
+    retryBtn: '↩ 再算一次',
+    timeOptions: [
+      ['不明','不知道'],['子','子時 (23:00-1:00)'],['丑','丑時 (1:00-3:00)'],
+      ['寅','寅時 (3:00-5:00)'],['卯','卯時 (5:00-7:00)'],['辰','辰時 (7:00-9:00)'],
+      ['巳','巳時 (9:00-11:00)'],['午','午時 (11:00-13:00)'],['未','未時 (13:00-15:00)'],
+      ['申','申時 (15:00-17:00)'],['酉','酉時 (17:00-19:00)'],['戌','戌時 (19:00-21:00)'],
+      ['亥','亥時 (21:00-23:00)'],
+    ],
+    yearSuffix: '年', monthSuffix: '月', daySuffix: '日',
+    footerPrivacy: '隱私政策', footerTerms: '服務條款',
+  },
+  ph: {
+    lang: 'en',
+    brandName: 'MeiSei AI',
+    brandSub: 'AI Fortune Service',
+    viralBar: '✦ Everyone is using this now ✦',
+    heroTitle: 'MeiSei AI',
+    heroSub: 'AI reads your destiny<br>BaZi Astrology × Artificial Intelligence',
+    heroBadge: '✨ One Reading ₱59',
+    menuSection: 'Choose Your Reading',
+    sajuTitle: 'BaZi Reading', sajuSub: 'Four Pillars', sajuDesc: 'Personality & Talents<br>This Year\'s Fortune',
+    gungTitle: 'Compatibility', gungSub: 'Love Match', gungDesc: 'Your Connection<br>Compatibility Score',
+    priceDisplay: '₱59',
+    consentDesc: 'We use your birthday only to generate your fortune reading. Data is deleted immediately after processing.',
+    consentAge: 'For users 18 years and above only.',
+    checkAge: 'I confirm I am 18 years or older',
+    checkPrivacy: 'I agree to the Privacy Policy',
+    checkTerms: 'I have read the Terms of Service',
+    consentBtn: 'Start Reading 🌿',
+    formSubtitle: 'Please enter your birth date',
+    youLabel: 'Your Information',
+    dobLabel: 'Date of Birth',
+    timeLabel: 'Birth Time (Optional)',
+    genderLabel: 'Gender', maleLabel: 'Male', femaleLabel: 'Female',
+    partnerLabel: 'Partner\'s Information', partnerDobLabel: 'Partner\'s Birth Date', partnerGenderLabel: 'Partner\'s Gender',
+    formNote: '🔒 Your information is used only for reading generation and is never stored.',
+    submitBtn: (price) => `Start Reading ${price} →`,
+    payTitle: 'AI Will Read Your Fortune', payLabel: 'Reading Fee',
+    payAmount: '₱59', payTax: 'Tax inclusive · One-time',
+    payDesc: 'Tap the button once<br>to go to the secure Stripe payment page.',
+    payCta: 'Pay Now', paySecurity: 'Secured by Stripe', payBack: '← Back',
+    loadingCheckout: 'Preparing payment page…', loadingFortune: 'AI is reading your fortune…',
+    sajuBadge: 'BaZi', gungBadge: 'Compatibility',
+    pillarNames: ['Year', 'Month', 'Day', 'Hour'],
+    scoreLabel: 'Compatibility Score',
+    resultSection: 'Your Reading',
+    disclaimer: '※ This result is AI-generated. It is not a prediction or guarantee.',
+    shareBtn: 'Share',
+    shareMsg: (type, preview, url) => `✨ Got my ${type === 'saju' ? 'BaZi Reading' : 'Compatibility Reading'} on MeiSei AI!\n\n🌿 ${preview}\n\n▶ Try it now\n${url}\n#MeiSeiAI #BaZi`,
+    retryBtn: '↩ New Reading',
+    timeOptions: [
+      ['不明','Unknown'],['子','Zi (23:00-1:00)'],['丑','Chou (1:00-3:00)'],
+      ['寅','Yin (3:00-5:00)'],['卯','Mao (5:00-7:00)'],['辰','Chen (7:00-9:00)'],
+      ['巳','Si (9:00-11:00)'],['午','Wu (11:00-13:00)'],['未','Wei (13:00-15:00)'],
+      ['申','Shen (15:00-17:00)'],['酉','You (17:00-19:00)'],['戌','Xu (19:00-21:00)'],
+      ['亥','Hai (21:00-23:00)'],
+    ],
+    yearSuffix: '', monthSuffix: '', daySuffix: '',
+    footerPrivacy: 'Privacy Policy', footerTerms: 'Terms of Service',
+  },
+  vn: {
+    lang: 'vi',
+    brandName: 'MeiSei AI',
+    brandSub: 'Dịch vụ xem bói AI',
+    viralBar: '✦ Mọi người đang dùng cái này ✦',
+    heroTitle: 'MeiSei AI',
+    heroSub: 'AI đọc vận mệnh của bạn<br>Tứ Trụ Mệnh Lý × Trí Tuệ Nhân Tạo',
+    heroBadge: '✨ Xem một lần ₫25.000',
+    menuSection: 'Chọn loại xem bói',
+    sajuTitle: 'Tứ Trụ', sajuSub: 'Xem bản thân', sajuDesc: 'Tính cách & Tài năng<br>Vận năm nay',
+    gungTitle: 'Hợp Tuổi', gungSub: 'Xem cặp đôi', gungDesc: 'Duyên phận hai người<br>Điểm hợp tuổi',
+    priceDisplay: '₫25.000',
+    consentDesc: 'Chúng tôi chỉ dùng ngày sinh của bạn để tạo kết quả xem bói. Dữ liệu bị xóa ngay sau khi xử lý.',
+    consentAge: 'Chỉ dành cho người từ 18 tuổi trở lên.',
+    checkAge: 'Tôi xác nhận tôi từ 18 tuổi trở lên',
+    checkPrivacy: 'Đồng ý Chính sách Bảo mật',
+    checkTerms: 'Đã đọc Điều khoản Dịch vụ',
+    consentBtn: 'Bắt đầu xem bói 🌿',
+    formSubtitle: 'Vui lòng nhập ngày sinh',
+    youLabel: 'Thông tin của bạn',
+    dobLabel: 'Ngày sinh',
+    timeLabel: 'Giờ sinh (Tùy chọn)',
+    genderLabel: 'Giới tính', maleLabel: 'Nam', femaleLabel: 'Nữ',
+    partnerLabel: 'Thông tin đối tác', partnerDobLabel: 'Ngày sinh đối tác', partnerGenderLabel: 'Giới tính đối tác',
+    formNote: '🔒 Thông tin chỉ dùng để xem bói, không lưu trữ trên máy chủ.',
+    submitBtn: (price) => `Bắt đầu xem bói ${price} →`,
+    payTitle: 'AI sẽ xem bói cho bạn', payLabel: 'Phí xem bói',
+    payAmount: '₫25.000', payTax: 'Đã bao gồm thuế · Một lần',
+    payDesc: 'Nhấn nút một lần<br>để đến trang thanh toán Stripe an toàn.',
+    payCta: 'Thanh toán ngay', paySecurity: 'Thanh toán bảo mật bởi Stripe', payBack: '← Quay lại',
+    loadingCheckout: 'Đang chuẩn bị trang thanh toán…', loadingFortune: 'AI đang xem bói…',
+    sajuBadge: 'Tứ Trụ', gungBadge: 'Hợp Tuổi',
+    pillarNames: ['Trụ Năm', 'Trụ Tháng', 'Trụ Ngày', 'Trụ Giờ'],
+    scoreLabel: 'Điểm Hợp Tuổi',
+    resultSection: 'Kết Quả Xem Bói',
+    disclaimer: '※ Kết quả này được AI tạo tự động, không phải dự đoán hay bảo đảm.',
+    shareBtn: 'Chia sẻ',
+    shareMsg: (type, preview, url) => `✨ Đã xem ${type === 'saju' ? 'Tứ Trụ' : 'Hợp Tuổi'} với MeiSei AI!\n\n🌿 ${preview}\n\n▶ Thử ngay\n${url}\n#MeiSeiAI #TứTrụ`,
+    retryBtn: '↩ Xem lại',
+    timeOptions: [
+      ['不明','Không biết'],['子','Giờ Tý (23:00-1:00)'],['丑','Giờ Sửu (1:00-3:00)'],
+      ['寅','Giờ Dần (3:00-5:00)'],['卯','Giờ Mão (5:00-7:00)'],['辰','Giờ Thìn (7:00-9:00)'],
+      ['巳','Giờ Tỵ (9:00-11:00)'],['午','Giờ Ngọ (11:00-13:00)'],['未','Giờ Mùi (13:00-15:00)'],
+      ['申','Giờ Thân (15:00-17:00)'],['酉','Giờ Dậu (17:00-19:00)'],['戌','Giờ Tuất (19:00-21:00)'],
+      ['亥','Giờ Hợi (21:00-23:00)'],
+    ],
+    yearSuffix: '', monthSuffix: '', daySuffix: '',
+    footerPrivacy: 'Chính sách Bảo mật', footerTerms: 'Điều khoản Dịch vụ',
+  },
+  my: {
+    lang: 'ms',
+    brandName: 'MeiSei AI',
+    brandSub: 'Perkhidmatan Ramalan AI',
+    viralBar: '✦ Semua orang sedang menggunakan ini ✦',
+    heroTitle: 'MeiSei AI',
+    heroSub: 'AI membaca nasib anda<br>BaZi Astrologi × Kecerdasan Buatan',
+    heroBadge: '✨ Satu Bacaan RM6',
+    menuSection: 'Pilih Jenis Bacaan',
+    sajuTitle: 'Ramalan BaZi', sajuSub: 'Empat Tiang', sajuDesc: 'Personaliti & Bakat<br>Nasib Tahun Ini',
+    gungTitle: 'Keserasian', gungSub: 'Padanan Cinta', gungDesc: 'Hubungan Anda<br>Skor Keserasian',
+    priceDisplay: 'RM6',
+    consentDesc: 'Kami menggunakan tarikh lahir anda sahaja untuk menjana bacaan ramalan. Data dipadamkan serta-merta selepas diproses.',
+    consentAge: 'Untuk pengguna berumur 18 tahun ke atas sahaja.',
+    checkAge: 'Saya mengesahkan saya berumur 18 tahun atau lebih',
+    checkPrivacy: 'Saya bersetuju dengan Dasar Privasi',
+    checkTerms: 'Saya telah membaca Terma Perkhidmatan',
+    consentBtn: 'Mula Bacaan 🌿',
+    formSubtitle: 'Sila masukkan tarikh lahir anda',
+    youLabel: 'Maklumat Anda',
+    dobLabel: 'Tarikh Lahir',
+    timeLabel: 'Masa Lahir (Pilihan)',
+    genderLabel: 'Jantina', maleLabel: 'Lelaki', femaleLabel: 'Perempuan',
+    partnerLabel: 'Maklumat Pasangan', partnerDobLabel: 'Tarikh Lahir Pasangan', partnerGenderLabel: 'Jantina Pasangan',
+    formNote: '🔒 Maklumat anda hanya digunakan untuk menjana bacaan dan tidak disimpan.',
+    submitBtn: (price) => `Mulakan Bacaan ${price} →`,
+    payTitle: 'AI Akan Membaca Nasib Anda', payLabel: 'Yuran Bacaan',
+    payAmount: 'RM6', payTax: 'Termasuk cukai · Sekali bayar',
+    payDesc: 'Ketik butang sekali<br>untuk pergi ke halaman pembayaran Stripe yang selamat.',
+    payCta: 'Bayar Sekarang', paySecurity: 'Dijamin oleh Stripe', payBack: '← Kembali',
+    loadingCheckout: 'Menyediakan halaman pembayaran…', loadingFortune: 'AI sedang membaca nasib anda…',
+    sajuBadge: 'BaZi', gungBadge: 'Keserasian',
+    pillarNames: ['Tahun', 'Bulan', 'Hari', 'Jam'],
+    scoreLabel: 'Skor Keserasian',
+    resultSection: 'Bacaan Anda',
+    disclaimer: '※ Keputusan ini dijana oleh AI secara automatik. Ia bukan ramalan atau jaminan.',
+    shareBtn: 'Kongsi',
+    shareMsg: (type, preview, url) => `✨ Dapat ${type === 'saju' ? 'Bacaan BaZi' : 'Bacaan Keserasian'} di MeiSei AI!\n\n🌿 ${preview}\n\n▶ Cuba sekarang\n${url}\n#MeiSeiAI #BaZi`,
+    retryBtn: '↩ Bacaan Baru',
+    timeOptions: [
+      ['不明','Tidak tahu'],['子','Zi (23:00-1:00)'],['丑','Chou (1:00-3:00)'],
+      ['寅','Yin (3:00-5:00)'],['卯','Mao (5:00-7:00)'],['辰','Chen (7:00-9:00)'],
+      ['巳','Si (9:00-11:00)'],['午','Wu (11:00-13:00)'],['未','Wei (13:00-15:00)'],
+      ['申','Shen (15:00-17:00)'],['酉','You (17:00-19:00)'],['戌','Xu (19:00-21:00)'],
+      ['亥','Hai (21:00-23:00)'],
+    ],
+    yearSuffix: '', monthSuffix: '', daySuffix: '',
+    footerPrivacy: 'Dasar Privasi', footerTerms: 'Terma Perkhidmatan',
+  },
+};
+
+/* ══════════════════════════════════════
+   마켓 가격 맵 (Worker와 동기화)
+   ══════════════════════════════════════ */
+const MARKET_PRICE = {
+  jp: { amount: 200, currency: 'jpy', display: '¥200' },
+  th: { amount: 39, currency: 'thb', display: '฿39' },
+  tw: { amount: 39, currency: 'twd', display: 'NT$39' },
+  ph: { amount: 59, currency: 'php', display: '₱59' },
+  vn: { amount: 25000, currency: 'vnd', display: '₫25.000' },
+  my: { amount: 6, currency: 'myr', display: 'RM6' },
+};
+
+/* ══════════════════════════════════════
+   앱 상태
+   ══════════════════════════════════════ */
+const state = {
+  market: 'jp',
+  i18n: null,
+  type: null,
+  gender1: null,
+  gender2: null,
+  userData: {},
+  partnerData: {},
+  result: null,
+};
+
+/* ══════════════════════════════════════
+   URL 파라미터 파싱
+   ══════════════════════════════════════ */
+function getMarketFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const m = params.get('market') || 'jp';
+  return MARKET_I18N[m] ? m : 'jp';
+}
+
+/* ══════════════════════════════════════
+   i18n 적용
+   ══════════════════════════════════════ */
+function applyI18n(t) {
+  document.documentElement.lang = t.lang;
+  document.title = `${t.brandName} — AI占い`;
+
+  // 동의 화면
+  document.getElementById('consent-brand-name').innerHTML = t.brandName.includes('命星')
+    ? '命星<span style="color:#06C755">AI</span>'
+    : `<span>${t.brandName}</span>`;
+  document.getElementById('consent-brand-sub').textContent = t.brandSub;
+  document.getElementById('consent-desc').innerHTML = t.consentDesc + '<br><strong id="consent-age-text">' + t.consentAge + '</strong>';
+  document.getElementById('check-age-label').textContent = t.checkAge;
+  document.getElementById('check-privacy-label').innerHTML =
+    `<a href="../../shared/legal/privacy.html" target="_blank">${t.footerPrivacy}</a>・${t.checkPrivacy.replace(t.footerPrivacy, '').trim()}`;
+  document.getElementById('check-terms-label').innerHTML =
+    `<a href="../../shared/legal/terms.html" target="_blank">${t.footerTerms}</a>・${t.checkTerms.replace(t.footerTerms, '').trim()}`;
+  document.getElementById('consent-btn').textContent = t.consentBtn;
+
+  // 메뉴 화면
+  document.getElementById('viral-bar-text').innerHTML = t.viralBar;
+  document.getElementById('hero-title').innerHTML = t.heroTitle.includes('命星')
+    ? '命星<span style="color:#06C755">AI</span>'
+    : t.heroTitle;
+  document.getElementById('hero-sub').innerHTML = t.heroSub;
+  document.getElementById('hero-badge').innerHTML = `✨ ${t.heroBadge.replace('✨ ', '')}`;
+  document.getElementById('menu-section-label').textContent = t.menuSection;
+  document.getElementById('card-saju-title').textContent = t.sajuTitle;
+  document.getElementById('card-saju-sub').textContent = t.sajuSub;
+  document.getElementById('card-saju-desc').innerHTML = t.sajuDesc;
+  document.getElementById('card-saju-price').textContent = t.priceDisplay;
+  document.getElementById('card-gung-title').textContent = t.gungTitle;
+  document.getElementById('card-gung-sub').textContent = t.gungSub;
+  document.getElementById('card-gung-desc').innerHTML = t.gungDesc;
+  document.getElementById('card-gung-price').textContent = t.priceDisplay;
+  document.getElementById('footer-privacy').textContent = t.footerPrivacy;
+  document.getElementById('footer-terms').textContent = t.footerTerms;
+
+  // 폼 화면
+  document.getElementById('form-subtitle').textContent = t.formSubtitle;
+  document.getElementById('you-label').textContent = t.youLabel;
+  document.getElementById('dob-label').textContent = t.dobLabel;
+  document.getElementById('time-label').textContent = t.timeLabel;
+  document.getElementById('gender-label').textContent = t.genderLabel;
+  document.getElementById('male-label').textContent = t.maleLabel;
+  document.getElementById('female-label').textContent = t.femaleLabel;
+  document.getElementById('male2-label').textContent = t.maleLabel;
+  document.getElementById('female2-label').textContent = t.femaleLabel;
+  document.getElementById('partner-label').textContent = t.partnerLabel;
+  document.getElementById('partner-dob-label').textContent = t.partnerDobLabel;
+  document.getElementById('partner-gender-label').textContent = t.partnerGenderLabel;
+  document.getElementById('form-note').textContent = t.formNote;
+
+  // 시간 옵션 채우기
+  const timeSel = document.getElementById('time1');
+  timeSel.innerHTML = '';
+  t.timeOptions.forEach(([val, label]) => {
+    const opt = document.createElement('option');
+    opt.value = val; opt.textContent = label;
+    timeSel.appendChild(opt);
+  });
+
+  // 결제 화면
+  document.getElementById('payment-title').textContent = t.payTitle;
+  document.getElementById('payment-price-label').textContent = t.payLabel;
+  document.getElementById('payment-price-amount').textContent = t.payAmount;
+  document.getElementById('payment-price-tax').textContent = t.payTax;
+  document.getElementById('payment-desc').innerHTML = t.payDesc;
+  document.getElementById('payment-cta-text').textContent = t.payCta;
+  document.getElementById('payment-security-text').textContent = t.paySecurity;
+  document.getElementById('payment-back-text').textContent = t.payBack;
+
+  // 결과 화면
+  document.getElementById('result-brand-name').textContent = t.brandName;
+  document.getElementById('pillar-year-name').textContent = t.pillarNames[0];
+  document.getElementById('pillar-month-name').textContent = t.pillarNames[1];
+  document.getElementById('pillar-day-name').textContent = t.pillarNames[2];
+  document.getElementById('pillar-time-name').textContent = t.pillarNames[3];
+  document.getElementById('score-label').textContent = t.scoreLabel;
+  document.getElementById('result-section-title').textContent = t.resultSection;
+  document.getElementById('result-disclaimer').textContent = t.disclaimer;
+  document.getElementById('share-btn-text').textContent = t.shareBtn;
+  document.getElementById('retry-btn-text').textContent = t.retryBtn;
+  document.getElementById('loading-text').textContent = t.loadingFortune;
+}
+
+/* ══════════════════════════════════════
+   유틸리티
+   ══════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById(id);
+  if (target) { target.classList.add('active'); window.scrollTo(0, 0); }
+}
+
+function setLoading(visible, text) {
+  if (text) document.getElementById('loading-text').textContent = text;
+  document.getElementById('loading-overlay').classList.toggle('active', visible);
+}
+
+/* ══════════════════════════════════════
+   동의 팝업
+   ══════════════════════════════════════ */
+const checkboxIds = ['check-age', 'check-privacy', 'check-terms'];
+checkboxIds.forEach(id => {
+  document.getElementById(id).addEventListener('change', () => {
+    const allChecked = checkboxIds.every(i => document.getElementById(i).checked);
+    document.getElementById('consent-btn').disabled = !allChecked;
+  });
+});
+
+document.getElementById('consent-btn').addEventListener('click', () => {
+  try { localStorage.setItem('meisei_consent_v2', '1'); } catch(e) {}
+  showScreen('screen-menu');
+});
+
+/* ══════════════════════════════════════
+   메인 메뉴
+   ══════════════════════════════════════ */
+document.getElementById('menu-saju').addEventListener('click', () => {
+  state.type = 'saju';
+  setupForm();
+  showScreen('screen-form');
+});
+document.getElementById('menu-gung').addEventListener('click', () => {
+  state.type = 'compatibility';
+  setupForm();
+  showScreen('screen-form');
+});
+
+/* ══════════════════════════════════════
+   입력 폼
+   ══════════════════════════════════════ */
+function setupForm() {
+  const t = state.i18n;
+  document.getElementById('form-title').textContent =
+    state.type === 'saju' ? t.sajuTitle : t.gungTitle;
+  document.getElementById('form-subtitle').textContent = t.formSubtitle;
+  document.getElementById('partner-section').style.display =
+    state.type === 'compatibility' ? 'block' : 'none';
+  document.getElementById('submit-btn-text').textContent = t.submitBtn(t.priceDisplay);
+
+  state.gender1 = null;
+  state.gender2 = null;
+  document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('selected'));
+
+  populateDateSelects();
+  checkFormValidity();
+}
+
+function populateDateSelects() {
+  const t = state.i18n;
+  const currentYear = new Date().getFullYear();
+
+  ['year1', 'year2'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = `<option value="">--${t.yearSuffix ? ' ' + t.yearSuffix : ''}</option>`;
+    for (let y = currentYear - 15; y >= 1900; y--) {
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = t.yearSuffix ? `${y}${t.yearSuffix}` : y;
+      sel.appendChild(opt);
+    }
+  });
+
+  ['month1', 'month2'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = `<option value="">--${t.monthSuffix ? ' ' + t.monthSuffix : ''}</option>`;
+    for (let m = 1; m <= 12; m++) {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = t.monthSuffix ? `${m}${t.monthSuffix}` : m;
+      sel.appendChild(opt);
+    }
+  });
+
+  ['day1', 'day2'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = `<option value="">--${t.daySuffix ? ' ' + t.daySuffix : ''}</option>`;
+    for (let d = 1; d <= 31; d++) {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = t.daySuffix ? `${d}${t.daySuffix}` : d;
+      sel.appendChild(opt);
+    }
+  });
+}
+
+function checkFormValidity() {
+  const y1 = document.getElementById('year1').value;
+  const m1 = document.getElementById('month1').value;
+  const d1 = document.getElementById('day1').value;
+  let valid = !!(y1 && m1 && d1 && state.gender1);
+  if (state.type === 'compatibility') {
+    const y2 = document.getElementById('year2').value;
+    const m2 = document.getElementById('month2').value;
+    const d2 = document.getElementById('day2').value;
+    valid = valid && !!(y2 && m2 && d2 && state.gender2);
+  }
+  document.getElementById('form-submit-btn').disabled = !valid;
+}
+
+['year1','month1','day1','year2','month2','day2'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', checkFormValidity);
+});
+
+['gender-male', 'gender-female'].forEach(id => {
+  document.getElementById(id).addEventListener('click', () => {
+    document.getElementById('gender-male').classList.remove('selected');
+    document.getElementById('gender-female').classList.remove('selected');
+    document.getElementById(id).classList.add('selected');
+    state.gender1 = id === 'gender-male' ? 'male' : 'female';
+    checkFormValidity();
+  });
+});
+
+['gender2-male', 'gender2-female'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) {
+    el.addEventListener('click', () => {
+      document.getElementById('gender2-male').classList.remove('selected');
+      document.getElementById('gender2-female').classList.remove('selected');
+      document.getElementById(id).classList.add('selected');
+      state.gender2 = id === 'gender2-male' ? 'male' : 'female';
+      checkFormValidity();
+    });
+  }
+});
+
+document.getElementById('form-back-btn').addEventListener('click', () => showScreen('screen-menu'));
+
+/* ══════════════════════════════════════
+   폼 제출 → 결제 화면으로 이동
+   ══════════════════════════════════════ */
+document.getElementById('form-submit-btn').addEventListener('click', () => {
+  // CISO: 생년월일 localStorage/sessionStorage 저장 금지
+  // 메모리(state)에만 보관
+  state.userData = {
+    year:   document.getElementById('year1').value,
+    month:  document.getElementById('month1').value,
+    day:    document.getElementById('day1').value,
+    time:   document.getElementById('time1').value,
+    gender: state.gender1,
+  };
+  if (state.type === 'compatibility') {
+    state.partnerData = {
+      year:   document.getElementById('year2').value,
+      month:  document.getElementById('month2').value,
+      day:    document.getElementById('day2').value,
+      gender: state.gender2,
+    };
+  }
+  showScreen('screen-payment');
+});
+
+document.getElementById('payment-back-btn').addEventListener('click', () => showScreen('screen-form'));
+
+/* ══════════════════════════════════════
+   결제 CTA — Stripe Checkout 리디렉션
+   CISO: session_id만 sessionStorage 사용, 생년월일 절대 저장 금지
+   ══════════════════════════════════════ */
+document.getElementById('payment-cta-btn').addEventListener('click', async () => {
+  const t = state.i18n;
+  setLoading(true, t.loadingCheckout);
+
+  try {
+    const WORKER_URL = window.WORKER_URL;
+    if (!WORKER_URL || WORKER_URL === 'REPLACE_WITH_WORKER_URL') {
+      throw new Error('Worker URL not configured');
+    }
+
+    const resp = await fetch(`${WORKER_URL}/api/checkout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        market: state.market,
+        type: state.type,
+        userData: state.userData,
+        partnerData: state.type === 'compatibility' ? state.partnerData : undefined,
+        returnUrl: window.location.href.split('?')[0],
+      }),
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ error: 'Server error' }));
+      throw new Error(err.error || 'Server error');
+    }
+
+    const { checkoutUrl, sessionId } = await resp.json();
+
+    // CISO: session_id만 임시 보관 (생년월일 없음)
+    try { sessionStorage.setItem('meisei_session_v2', sessionId); } catch(e) {}
+
+    setLoading(false);
+    window.location.href = checkoutUrl;
+
+  } catch (err) {
+    setLoading(false);
+    alert(err.message);
+  }
+});
+
+/* ══════════════════════════════════════
+   결제 완료 리턴 처리
+   URL: ?payment=success&session_id=xxx
+   ══════════════════════════════════════ */
+async function handlePaymentReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const isSuccess = params.get('payment') === 'success';
+  const sessionId = params.get('session_id') || (() => {
+    try { return sessionStorage.getItem('meisei_session_v2'); } catch(e) { return null; }
+  })();
+
+  if (!isSuccess || !sessionId) return false;
+
+  // URL 정리
+  try {
+    const cleanUrl = window.location.pathname + (window.location.search.includes('market=')
+      ? `?market=${state.market}` : '');
+    window.history.replaceState({}, '', cleanUrl);
+  } catch(e) {}
+
+  const t = state.i18n;
+  setLoading(true, t.loadingFortune);
+
+  try {
+    const WORKER_URL = window.WORKER_URL;
+    if (!WORKER_URL || WORKER_URL === 'REPLACE_WITH_WORKER_URL') {
+      throw new Error('Worker URL not configured');
+    }
+
+    // CISO: session_id만 전송 — 결제 완료 후에만 /api/fortune 호출 가능
+    const resp = await fetch(`${WORKER_URL}/api/fortune`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId, market: state.market }),
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ error: 'Error' }));
+      throw new Error(err.error || 'Fortune error');
+    }
+
+    const data = await resp.json();
+    state.type = data.type || 'saju';
+    state.result = data;
+
+    // session 정리
+    try { sessionStorage.removeItem('meisei_session_v2'); } catch(e) {}
+
+    setLoading(false);
+    renderResult(data);
+    showScreen('screen-result');
+    return true;
+
+  } catch (err) {
+    setLoading(false);
+    alert(err.message);
+    return false;
+  }
+}
+
+/* ══════════════════════════════════════
+   결과 렌더링
+   ══════════════════════════════════════ */
+function renderResult(data) {
+  const t = state.i18n;
+  document.getElementById('result-type-badge').textContent =
+    state.type === 'saju' ? t.sajuBadge : t.gungBadge;
+  document.getElementById('result-text').textContent = data.text || '';
+
+  if (state.type === 'saju') {
+    document.getElementById('pillars-wrap').style.display = 'grid';
+    document.getElementById('score-display').style.display = 'none';
+    if (data.pillars) {
+      const p = data.pillars;
+      document.getElementById('pillar-year-k').textContent  = p.year?.kanji   || '—';
+      document.getElementById('pillar-year-r').textContent  = p.year?.reading  || '';
+      document.getElementById('pillar-month-k').textContent = p.month?.kanji   || '—';
+      document.getElementById('pillar-month-r').textContent = p.month?.reading || '';
+      document.getElementById('pillar-day-k').textContent   = p.day?.kanji     || '—';
+      document.getElementById('pillar-day-r').textContent   = p.day?.reading   || '';
+      document.getElementById('pillar-time-k').textContent  = p.time?.kanji    || '—';
+      document.getElementById('pillar-time-r').textContent  = p.time?.reading  || '';
+    }
+  } else {
+    document.getElementById('pillars-wrap').style.display = 'none';
+    document.getElementById('score-display').style.display = 'flex';
+    const score = data.score || 0;
+    document.getElementById('score-number').textContent = score;
+    const filled = Math.round(score / 20);
+    document.getElementById('score-stars').textContent =
+      '★'.repeat(filled) + '☆'.repeat(5 - filled);
+  }
+}
+
+/* ══════════════════════════════════════
+   공유 버튼 — Web Share API 우선, 폴백 클립보드
+   ══════════════════════════════════════ */
+document.getElementById('share-btn').addEventListener('click', async () => {
+  const t = state.i18n;
+  const preview = (state.result?.text || '').slice(0, 60) + '…';
+  const url = window.location.href.split('?')[0] + `?market=${state.market}`;
+  const shareText = t.shareMsg(state.type, preview, url);
+
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: t.brandName, text: shareText });
+    } catch(e) {
+      if (e.name !== 'AbortError') await copyToClipboard(shareText);
+    }
+  } else {
+    await copyToClipboard(shareText);
+  }
+});
+
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    const btn = document.getElementById('share-btn');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✅ Copied!';
+    btn.style.background = '#10B981';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; }, 2000);
+  } catch(e) {}
+}
+
+document.getElementById('retry-btn').addEventListener('click', () => {
+  state.type = null;
+  state.result = null;
+  state.userData = {};
+  state.partnerData = {};
+  showScreen('screen-menu');
+});
+
+/* ══════════════════════════════════════
+   앱 초기화
+   ══════════════════════════════════════ */
+async function initApp() {
+  // 마켓 선택
+  state.market = getMarketFromURL();
+  state.i18n = MARKET_I18N[state.market];
+
+  // i18n 적용
+  applyI18n(state.i18n);
+
+  // 결제 완료 리턴 처리 (최우선)
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('payment') === 'success') {
+    const handled = await handlePaymentReturn();
+    if (handled) return;
+  }
+
+  // 동의 여부 확인
+  let hasConsent = false;
+  try { hasConsent = !!localStorage.getItem('meisei_consent_v2'); } catch(e) {}
+
+  showScreen(hasConsent ? 'screen-menu' : 'screen-consent');
+}
+
+initApp();
+</script>
+</body>
+</html>

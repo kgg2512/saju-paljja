@@ -22,6 +22,7 @@ export const MARKETS = {
     priceUnit: 200,            // 1쿼리 단가 (CFO 확정)
     bep: 8,                    // 손익분기 쿼리 수
     payment: 'stripe',         // Stripe Japan (LINE Pay Japan 2025-04-30 종료)
+    webAppUrl: 'https://kgg2512.github.io/mureupak-dosa/markets/web/app.html?market=jp',
     liffEndpoint: 'https://kgg2512.github.io/mureupak-dosa/markets/japan/liff/',
     workerRoute: '/japan/*',
     region: 'JP',
@@ -30,6 +31,7 @@ export const MARKETS = {
     legalRequired: ['tokushoho', 'privacy', 'terms'],
     stripeLocale: 'ja',
     minAge: 18,
+    llmLang: 'ja',
     // 마켓별 UX 텍스트
     ui: {
       consentBtn: '占いを始める 🌿',
@@ -78,6 +80,7 @@ export const MARKETS = {
     priceUnit: 45,             // NT$45 (CFO 확정)
     bep: 12,
     payment: 'stripe',         // LINE Pay Taiwan 활성 여부 확인 필요 (Taiwan = LINE Pay OK)
+    webAppUrl: 'https://kgg2512.github.io/mureupak-dosa/markets/web/app.html?market=tw',
     liffEndpoint: 'https://kgg2512.github.io/mureupak-dosa/markets/taiwan/liff/',
     workerRoute: '/taiwan/*',
     region: 'TW',
@@ -87,6 +90,7 @@ export const MARKETS = {
     stripeLocale: 'zh',
     minAge: 18,
     status: 'phase3',         // Phase 3 예정
+    llmLang: 'zh-TW',
     ui: {
       consentBtn: '開始算命 🌿',
       payBtn: 'NT$45 付款算命 ✨',
@@ -106,6 +110,7 @@ export const MARKETS = {
     priceUnit: 39,             // ฿39 (CFO 확정)
     bep: 14,
     payment: 'stripe',         // LINE Pay Thailand 확인 필요
+    webAppUrl: 'https://kgg2512.github.io/mureupak-dosa/markets/web/app.html?market=th',
     liffEndpoint: 'https://kgg2512.github.io/mureupak-dosa/markets/thailand/liff/',
     workerRoute: '/thailand/*',
     region: 'TH',
@@ -115,11 +120,101 @@ export const MARKETS = {
     stripeLocale: 'th',
     minAge: 18,
     status: 'phase3',         // Phase 3 예정
+    llmLang: 'th',
     ui: {
       consentBtn: 'เริ่มดูดวง 🌿',
       payBtn: '฿39 ชำระเงินดูดวง ✨',
       shareMsg: (label, preview) =>
         `✨ ดู${label}กับ MeiSei AI แล้ว!\n\n🌿 ${preview}\n▶ ลองเลย\n#MeiSeiAI #ดูดวง`,
+    },
+  },
+
+  // ── K-pop 확장 마켓 (범용 웹앱, LIFF 없음) ───────────────────────────────
+
+  philippines: {
+    id: 'philippines',
+    name: 'MeiSei AI',
+    nameLatin: 'MeiSei AI',
+    platform: 'web',           // 범용 웹앱 — 어떤 메신저 링크도 동작
+    language: 'en',
+    currency: 'php',
+    currencySymbol: '₱',
+    priceUnit: 59,             // ₱59 (CFO 확정)
+    bep: 10,
+    payment: 'stripe',
+    webAppUrl: 'https://kgg2512.github.io/mureupak-dosa/markets/web/app.html?market=ph',
+    workerRoute: '/web/*',
+    region: 'PH',
+    locale: 'en-PH',
+    timezone: 'Asia/Manila',
+    legalRequired: ['privacy', 'terms'],  // DPA 2012 기준
+    stripeLocale: 'en',
+    minAge: 18,
+    status: 'phase3',
+    llmLang: 'en',
+    ui: {
+      consentBtn: 'Start Reading 🌿',
+      payBtn: '₱59 Pay & Read ✨',
+      shareMsg: (label, preview) =>
+        `✨ Got my ${label} on MeiSei AI!\n\n🌿 ${preview}\n▶ Try it now\n#MeiSeiAI #BaZi`,
+    },
+  },
+
+  vietnam: {
+    id: 'vietnam',
+    name: 'MeiSei AI',
+    nameLatin: 'MeiSei AI',
+    platform: 'web',           // 범용 웹앱
+    language: 'vi',
+    currency: 'vnd',
+    currencySymbol: '₫',
+    priceUnit: 25000,          // ₫25,000 (CFO 확정)
+    bep: 9,
+    payment: 'stripe',
+    webAppUrl: 'https://kgg2512.github.io/mureupak-dosa/markets/web/app.html?market=vn',
+    workerRoute: '/web/*',
+    region: 'VN',
+    locale: 'vi-VN',
+    timezone: 'Asia/Ho_Chi_Minh',
+    legalRequired: ['privacy', 'terms'],  // PDPD 기준
+    stripeLocale: 'vi',
+    minAge: 18,
+    status: 'phase3',
+    llmLang: 'vi',
+    ui: {
+      consentBtn: 'Bắt đầu xem bói 🌿',
+      payBtn: '₫25.000 Thanh toán ✨',
+      shareMsg: (label, preview) =>
+        `✨ Đã xem ${label} với MeiSei AI!\n\n🌿 ${preview}\n▶ Thử ngay\n#MeiSeiAI #TứTrụ`,
+    },
+  },
+
+  malaysia: {
+    id: 'malaysia',
+    name: 'MeiSei AI',
+    nameLatin: 'MeiSei AI',
+    platform: 'web',           // 범용 웹앱
+    language: 'ms',
+    currency: 'myr',
+    currencySymbol: 'RM',
+    priceUnit: 6,              // RM6 (CFO 확정)
+    bep: 10,
+    payment: 'stripe',
+    webAppUrl: 'https://kgg2512.github.io/mureupak-dosa/markets/web/app.html?market=my',
+    workerRoute: '/web/*',
+    region: 'MY',
+    locale: 'ms-MY',
+    timezone: 'Asia/Kuala_Lumpur',
+    legalRequired: ['privacy', 'terms'],  // PDPA 2010 기준
+    stripeLocale: 'ms',
+    minAge: 18,
+    status: 'phase3',
+    llmLang: 'ms',
+    ui: {
+      consentBtn: 'Mula Bacaan 🌿',
+      payBtn: 'RM6 Bayar & Baca ✨',
+      shareMsg: (label, preview) =>
+        `✨ Dapat ${label} di MeiSei AI!\n\n🌿 ${preview}\n▶ Cuba sekarang\n#MeiSeiAI #BaZi`,
     },
   },
 
@@ -164,7 +259,14 @@ export const MARKETS = {
  */
 export function getMarketConfig(marketHeader) {
   const market = marketHeader?.toLowerCase();
-  return MARKETS[market] || MARKETS.global;
+  // 단축 코드(jp/th/tw/ph/vn/my) → 전체 키 매핑
+  const shortToFull = {
+    jp: 'japan', th: 'thailand', tw: 'taiwan',
+    ph: 'philippines', vn: 'vietnam', my: 'malaysia',
+    ko: 'korea',
+  };
+  const resolved = shortToFull[market] || market;
+  return MARKETS[resolved] || MARKETS.global;
 }
 
 /**
@@ -187,7 +289,9 @@ export function getStripeAmount(market) {
  * X-Market 헤더 유효성 검증
  */
 export function isValidMarket(market) {
-  return Object.keys(MARKETS).includes(market?.toLowerCase());
+  const shortCodes = ['jp', 'th', 'tw', 'ph', 'vn', 'my', 'ko'];
+  const m = market?.toLowerCase();
+  return Object.keys(MARKETS).includes(m) || shortCodes.includes(m);
 }
 
 /**
