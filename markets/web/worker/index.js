@@ -320,19 +320,40 @@ async function replyLineMessage(replyToken, messages, accessToken) {
 }
 
 // ──────────────────────────────────────────
-// CORS 헤더
+// CORS 헤더 (CISO: 허용 오리진 명시)
 // ──────────────────────────────────────────
+const ALLOWED_ORIGINS = [
+  'https://kgg2512.github.io',
+  'https://liff.line.me',
+];
+
+function getCorsHeaders(request) {
+  const origin = request?.headers?.get('Origin') || '';
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin)
+    ? origin
+    : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Vary': 'Origin',
+    'Cache-Control': 'no-store, no-cache',
+  };
+}
+
+// 레거시 호환 (기본 오리진)
 const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://kgg2512.github.io',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Vary': 'Origin',
   'Cache-Control': 'no-store, no-cache',
 };
 
-function corsResponse(body, status = 200, extra = {}) {
+function corsResponse(body, status = 200, extra = {}, request = null) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, ...extra },
+    headers: { 'Content-Type': 'application/json', ...getCorsHeaders(request), ...extra },
   });
 }
 
@@ -638,15 +659,40 @@ async function handleLineWebhook(request, env) {
 }
 
 // ──────────────────────────────────────────
+// EU 차단 로직 (CISO M8 — GDPR 리스크 방어)
+// ──────────────────────────────────────────
+const EU_COUNTRY_CODES = new Set([
+  'AT','BE','BG','CY','CZ','DE','DK','EE','ES','FI',
+  'FR','GR','HR','HU','IE','IT','LT','LU','LV','MT',
+  'NL','PL','PT','RO','SE','SI','SK',
+  'IS','LI','NO',  // EEA
+  'GB',             // UK GDPR
+]);
+
+function isEURequest(request) {
+  const country = request.cf?.country || request.headers.get('CF-IPCountry') || '';
+  return EU_COUNTRY_CODES.has(country.toUpperCase());
+}
+
+// ──────────────────────────────────────────
 // 메인 라우터
 // ──────────────────────────────────────────
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
+    const corsHeaders = getCorsHeaders(request);
 
     if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: CORS_HEADERS });
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
+    // CISO M8: EU/EEA/UK 접근 차단 (GDPR 준수)
+    if (isEURequest(request) && !path.endsWith('/api/health')) {
+      return new Response(
+        JSON.stringify({ error: 'Service not available in your region.' }),
+        { status: 451, headers: { 'Content-Type': 'application/json', ...corsHeaders, 'Cache-Control': 'no-store' } }
+      );
     }
 
     if (path.endsWith('/api/checkout')) return handleCheckout(request, env);

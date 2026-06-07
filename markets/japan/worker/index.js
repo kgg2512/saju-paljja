@@ -592,6 +592,22 @@ function handleHealth() {
 }
 
 // ──────────────────────────────────────────
+// EU 차단 로직 (CISO M8 — GDPR 리스크 방어)
+// ──────────────────────────────────────────
+const EU_COUNTRY_CODES = new Set([
+  'AT','BE','BG','CY','CZ','DE','DK','EE','ES','FI',
+  'FR','GR','HR','HU','IE','IT','LT','LU','LV','MT',
+  'NL','PL','PT','RO','SE','SI','SK',
+  'IS','LI','NO',  // EEA
+  'GB',             // UK GDPR
+]);
+
+function isEURequest(request) {
+  const country = request.cf?.country || request.headers.get('CF-IPCountry') || '';
+  return EU_COUNTRY_CODES.has(country.toUpperCase());
+}
+
+// ──────────────────────────────────────────
 // 메인 라우터
 // ──────────────────────────────────────────
 export default {
@@ -602,6 +618,15 @@ export default {
     // OPTIONS preflight
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
+    }
+
+    // CISO M8: EU/EEA/UK 접근 차단 (GDPR 준수)
+    const isHealth = path === '/api/health' || path.endsWith('/api/health');
+    if (isEURequest(request) && !isHealth) {
+      return new Response(
+        JSON.stringify({ error: 'Service not available in your region.' }),
+        { status: 451, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, 'Cache-Control': 'no-store' } }
+      );
     }
 
     // 라우팅
@@ -617,7 +642,7 @@ export default {
       return handleFortune(request, env);
     }
 
-    if (path === '/api/health' || path.endsWith('/api/health')) {
+    if (isHealth) {
       return handleHealth();
     }
 

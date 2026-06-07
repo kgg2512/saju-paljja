@@ -1008,6 +1008,9 @@
     result: null,
   };
 
+  // CISO M7: LIFF access token은 window 전역 노출 금지 — 모듈 클로저 내에서만 보관
+  let _liffToken = null;
+
   /* ══════════════════════════════════════
      Utilities
      ══════════════════════════════════════ */
@@ -1188,7 +1191,7 @@
 
     try {
       const WORKER_URL = window.WORKER_URL || 'https://saju-worker.YOUR_ACCOUNT.workers.dev';
-      const token = window._liffAccessToken || '';
+      const token = _liffToken || '';
 
       // CF Worker에 Stripe Checkout Session 요청
       const resp = await fetch(`${WORKER_URL}/api/checkout`, {
@@ -1241,7 +1244,7 @@
 
     try {
       const WORKER_URL = window.WORKER_URL || 'https://saju-worker.YOUR_ACCOUNT.workers.dev';
-      const token = window._liffAccessToken || '';
+      const token = _liffToken || '';
 
       const resp = await fetch(`${WORKER_URL}/api/fortune`, {
         method: 'POST',
@@ -1362,7 +1365,7 @@
 
     try {
       await liff.init({ liffId: LIFF_ID });
-      window._liffAccessToken = liff.getAccessToken();
+      _liffToken = liff.getAccessToken(); // CISO M7: window 전역 노출 금지
 
       // 결제 완료 리턴 처리 (최우선)
       const handled = await handlePaymentReturn();
