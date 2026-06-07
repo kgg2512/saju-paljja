@@ -6,27 +6,21 @@
   <meta name="theme-color" content="#06C755">
   <title>命星AI — 四柱推命AIサービス</title>
 
-  <!-- Noto Sans/Serif JP (선택적, 없으면 시스템 폰트 fallback) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
 
   <!-- LIFF SDK -->
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
 
-  <!-- 디자인 시스템 CSS (같은 폴더에 위치) -->
+  <!-- Design System -->
   <link rel="stylesheet" href="style.css">
 
-  <!-- ── 인라인 CSS: 스타일 파일 미로딩 시 최소 fallback ── -->
   <style>
-    /* ── 이 블록은 실제 배포 시 style.css로 이동 ── */
-
-    /* Screen visibility control */
+    /* Screen control */
     .screen { display: none; }
     .screen.active { display: flex; }
 
-    /* ======================================
-       화면 1: 동의 팝업 (Consent Modal)
-       ====================================== */
+    /* ── Consent Screen ── */
     #screen-consent {
       position: fixed;
       inset: 0;
@@ -40,10 +34,20 @@
     .consent-sheet {
       background: #fff;
       border-radius: 20px 20px 0 0;
-      padding: 24px;
+      padding: 8px 0 0;
       width: 100%;
       animation: slideUp 300ms ease;
     }
+
+    .consent-handle {
+      width: 36px;
+      height: 4px;
+      background: #E8ECF0;
+      border-radius: 100px;
+      margin: 0 auto 20px;
+    }
+
+    .consent-inner { padding: 0 24px 32px; }
 
     .consent-brand {
       display: flex;
@@ -72,7 +76,7 @@
     .consent-checks {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 0;
       margin-bottom: 20px;
     }
 
@@ -80,8 +84,9 @@
       display: flex;
       align-items: flex-start;
       gap: 12px;
-      padding: 10px 0;
+      padding: 12px 0;
       border-bottom: 1px solid #F3F4F6;
+      cursor: pointer;
     }
     .consent-check-item:last-child { border-bottom: none; }
 
@@ -96,6 +101,7 @@
       appearance: none;
       margin-top: 1px;
       transition: all 150ms ease;
+      flex-shrink: 0;
     }
     .consent-checkbox:checked {
       background: #06C755;
@@ -148,18 +154,26 @@
     }
     .consent-btn:not(:disabled):active { transform: scale(0.98); }
 
-    /* ======================================
-       화면 2: 메인 메뉴
-       ====================================== */
+    /* ── Menu Screen ── */
     #screen-menu {
       flex-direction: column;
       min-height: 100vh;
       background: #fff;
     }
 
+    .menu-viral-bar {
+      background: #1A1A2E;
+      color: rgba(255,255,255,0.85);
+      text-align: center;
+      padding: 10px 16px;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+    }
+    .menu-viral-bar strong { color: #06C755; }
+
     .menu-hero {
       background: linear-gradient(180deg, #E8F9EE 0%, #fff 100%);
-      padding: 48px 20px 32px;
+      padding: 40px 20px 28px;
       text-align: center;
       position: relative;
       overflow: hidden;
@@ -167,27 +181,27 @@
 
     .menu-hero-stars {
       position: absolute;
-      top: 16px;
+      top: 14px;
       left: 0;
       right: 0;
       display: flex;
       justify-content: center;
       gap: 16px;
-      font-size: 12px;
+      font-size: 11px;
       color: #B2E6C8;
       animation: sparkle 4s ease infinite;
     }
 
     .menu-hero-icon {
-      font-size: 60px;
+      font-size: 56px;
       display: block;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       filter: drop-shadow(0 4px 16px rgba(6,199,85,0.3));
     }
 
     .menu-hero-title {
       font-family: 'Noto Serif JP', serif;
-      font-size: 32px;
+      font-size: 30px;
       font-weight: 700;
       color: #1A1A2E;
       letter-spacing: -0.02em;
@@ -199,7 +213,7 @@
       font-size: 13px;
       color: #6B7280;
       line-height: 1.6;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .menu-hero-badge {
@@ -214,26 +228,13 @@
       font-weight: 700;
     }
 
-    /* Viral copycat slogan bar */
-    .menu-viral-bar {
-      background: #1A1A2E;
-      color: rgba(255,255,255,0.85);
-      text-align: center;
-      padding: 10px 16px;
-      font-size: 13px;
-      letter-spacing: 0.02em;
-    }
-    .menu-viral-bar strong {
-      color: #06C755;
-    }
-
     .menu-section-title {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       color: #9CA3AF;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      padding: 20px 20px 10px;
+      padding: 20px 16px 10px;
     }
 
     .menu-cards {
@@ -247,8 +248,8 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
-      padding: 24px 12px;
+      gap: 8px;
+      padding: 22px 12px;
       background: #fff;
       border: 2px solid #E8ECF0;
       border-radius: 18px;
@@ -258,27 +259,16 @@
       transition: all 250ms ease;
       -webkit-tap-highlight-color: transparent;
     }
-    .menu-card:hover,
     .menu-card:active {
       border-color: #06C755;
       background: #E8F9EE;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(6,199,85,0.15);
+      transform: scale(0.97);
     }
 
-    .menu-card-emoji { font-size: 40px; }
-
-    .menu-card-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: #1A1A2E;
-    }
-
-    .menu-card-jp {
-      font-size: 11px;
-      color: #6B7280;
-    }
-
+    .menu-card-emoji { font-size: 38px; }
+    .menu-card-title { font-size: 15px; font-weight: 700; color: #1A1A2E; }
+    .menu-card-jp { font-size: 10px; color: #6B7280; }
+    .menu-card-desc { font-size: 11px; color: #6B7280; line-height: 1.5; }
     .menu-card-price {
       font-size: 13px;
       font-weight: 700;
@@ -293,23 +283,13 @@
       align-items: center;
       justify-content: center;
       gap: 16px;
-      padding: 24px 16px;
+      padding: 28px 16px 24px;
       margin-top: auto;
     }
-    .menu-footer a {
-      font-size: 11px;
-      color: #9CA3AF;
-      text-decoration: none;
-    }
-    .menu-footer-sep {
-      width: 1px;
-      height: 10px;
-      background: #E8ECF0;
-    }
+    .menu-footer a { font-size: 11px; color: #9CA3AF; text-decoration: none; }
+    .menu-footer-sep { width: 1px; height: 10px; background: #E8ECF0; }
 
-    /* ======================================
-       화면 3: 입력 폼 (사주 / 궁합)
-       ====================================== */
+    /* ── Form Screen ── */
     #screen-form {
       flex-direction: column;
       min-height: 100vh;
@@ -340,22 +320,10 @@
     }
 
     .form-title-wrap { flex: 1; }
+    .form-screen-title { font-size: 18px; font-weight: 700; color: #1A1A2E; }
+    .form-screen-subtitle { font-size: 12px; color: #9CA3AF; margin-top: 2px; }
 
-    .form-screen-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: #1A1A2E;
-    }
-    .form-screen-subtitle {
-      font-size: 12px;
-      color: #9CA3AF;
-      margin-top: 2px;
-    }
-
-    .form-body {
-      padding: 16px 16px 0;
-      flex: 1;
-    }
+    .form-body { padding: 16px 16px 0; flex: 1; }
 
     .form-person-label {
       display: flex;
@@ -369,9 +337,7 @@
       border-bottom: 2px solid #E8F9EE;
     }
 
-    .form-group {
-      margin-bottom: 16px;
-    }
+    .form-group { margin-bottom: 16px; }
     .form-label {
       display: block;
       font-size: 13px;
@@ -393,7 +359,7 @@
       border-radius: 12px;
       padding: 0 14px;
       font-family: inherit;
-      font-size: 16px; /* iOS 확대 방지 */
+      font-size: 16px;
       color: #1A1A2E;
       background: #fff;
       width: 100%;
@@ -402,9 +368,7 @@
       appearance: none;
       transition: border-color 150ms ease, box-shadow 150ms ease;
     }
-    .form-select-wrap {
-      position: relative;
-    }
+    .form-select-wrap { position: relative; }
     .form-select-wrap::after {
       content: '▾';
       position: absolute;
@@ -422,11 +386,38 @@
       box-shadow: 0 0 0 3px rgba(6,199,85,0.12);
     }
 
-    .form-divider {
-      height: 1px;
-      background: #F3F4F6;
-      margin: 20px 0;
+    /* Gender toggle */
+    .gender-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
     }
+
+    .gender-btn {
+      height: 52px;
+      border: 1.5px solid #E8ECF0;
+      border-radius: 12px;
+      background: #fff;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      color: #6B7280;
+      cursor: pointer;
+      transition: all 150ms ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .gender-btn.selected {
+      border-color: #06C755;
+      border-width: 2px;
+      background: #E8F9EE;
+      color: #05A847;
+      font-weight: 700;
+    }
+
+    .form-divider { height: 1px; background: #F3F4F6; margin: 20px 0; }
 
     .form-note {
       font-size: 12px;
@@ -438,7 +429,6 @@
       margin-bottom: 16px;
     }
 
-    /* Sticky 하단 CTA */
     .form-cta {
       position: sticky;
       bottom: 0;
@@ -474,132 +464,7 @@
       cursor: not-allowed;
     }
 
-    /* ======================================
-       화면 4: 결제 (Payment)
-       ====================================== */
-    #screen-payment {
-      flex-direction: column;
-      min-height: 100vh;
-      background: #F7F8FA;
-    }
-
-    .payment-header {
-      background: #fff;
-      padding: 20px 16px;
-      border-bottom: 1px solid #E8ECF0;
-    }
-
-    .payment-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: #1A1A2E;
-      margin-bottom: 4px;
-    }
-
-    .payment-body { padding: 16px; }
-
-    .payment-summary {
-      background: #fff;
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 16px;
-      border: 1px solid #E8ECF0;
-    }
-
-    .payment-summary-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 0;
-    }
-    .payment-summary-label {
-      font-size: 14px;
-      color: #6B7280;
-    }
-    .payment-summary-value {
-      font-size: 14px;
-      font-weight: 600;
-      color: #1A1A2E;
-    }
-    .payment-summary-total {
-      border-top: 1px solid #E8ECF0;
-      margin-top: 8px;
-      padding-top: 12px;
-    }
-    .payment-summary-total .payment-summary-label {
-      font-weight: 700;
-      color: #1A1A2E;
-    }
-    .payment-summary-total .payment-summary-value {
-      font-size: 20px;
-      color: #06C755;
-    }
-
-    .stripe-container {
-      background: #fff;
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 16px;
-      border: 1px solid #E8ECF0;
-    }
-
-    .stripe-label {
-      font-size: 13px;
-      font-weight: 500;
-      color: #6B7280;
-      margin-bottom: 10px;
-    }
-
-    /* Stripe Elements가 주입되는 div */
-    #stripe-card-element {
-      min-height: 44px;
-      padding: 4px 0;
-    }
-
-    .stripe-error {
-      font-size: 12px;
-      color: #EF4444;
-      margin-top: 8px;
-      display: none;
-    }
-
-    .security-note {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      font-size: 11px;
-      color: #9CA3AF;
-      margin-top: 8px;
-    }
-
-    .payment-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-      height: 54px;
-      background: #06C755;
-      color: #fff;
-      border: none;
-      border-radius: 14px;
-      font-family: inherit;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 150ms ease;
-    }
-    .payment-btn:active { transform: scale(0.98); }
-    .payment-btn:disabled {
-      background: #E8ECF0;
-      color: #9CA3AF;
-      cursor: not-allowed;
-    }
-
-    /* ======================================
-       화면 5: 결과 화면 (Result)
-       ====================================== */
+    /* ── Result Screen ── */
     #screen-result {
       flex-direction: column;
       min-height: 100vh;
@@ -650,7 +515,6 @@
       font-weight: 700;
     }
 
-    /* 사주 4기둥 표시 */
     .pillars-wrap {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -674,19 +538,9 @@
       font-size: 22px;
       color: #F5A623;
     }
+    .pillar-reading { font-size: 10px; color: rgba(255,255,255,0.5); letter-spacing: 0.05em; }
+    .pillar-name { font-size: 11px; color: rgba(255,255,255,0.4); }
 
-    .pillar-reading {
-      font-size: 10px;
-      color: rgba(255,255,255,0.5);
-      letter-spacing: 0.05em;
-    }
-
-    .pillar-name {
-      font-size: 11px;
-      color: rgba(255,255,255,0.4);
-    }
-
-    /* 결과 텍스트 카드 */
     .result-content-card {
       background: rgba(255,255,255,0.05);
       border: 1px solid rgba(255,255,255,0.1);
@@ -713,9 +567,9 @@
       line-height: 2;
       color: rgba(255,255,255,0.88);
       letter-spacing: 0.02em;
+      white-space: pre-wrap;
     }
 
-    /* 궁합 점수 (相性占い) */
     .score-display {
       display: flex;
       flex-direction: column;
@@ -728,12 +582,7 @@
       margin-bottom: 16px;
     }
 
-    .score-label {
-      font-size: 13px;
-      color: rgba(255,255,255,0.5);
-      font-weight: 500;
-    }
-
+    .score-label { font-size: 13px; color: rgba(255,255,255,0.5); font-weight: 500; }
     .score-number {
       font-family: 'Noto Serif JP', serif;
       font-size: 64px;
@@ -741,16 +590,9 @@
       color: #F5A623;
       line-height: 1;
     }
-
     .score-max { font-size: 24px; color: rgba(255,255,255,0.3); }
+    .score-stars { font-size: 20px; letter-spacing: 4px; color: #F5A623; }
 
-    .score-stars {
-      font-size: 20px;
-      letter-spacing: 4px;
-      color: #F5A623;
-    }
-
-    /* 면책 문구 */
     .result-disclaimer {
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.08);
@@ -762,7 +604,6 @@
       margin-bottom: 20px;
     }
 
-    /* LINE 공유 버튼 */
     .share-btn {
       display: flex;
       align-items: center;
@@ -783,7 +624,6 @@
       animation: pulse-green 2s infinite;
     }
     .share-btn:active { transform: scale(0.97); animation: none; }
-
     .share-btn-icon { font-size: 22px; }
 
     .result-retry-btn {
@@ -804,24 +644,7 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* ── Animations (중복 포함, style.css 없을 때 대비) ── */
-    @keyframes slideUp {
-      from { transform: translateY(100%); }
-      to   { transform: translateY(0); }
-    }
-    @keyframes sparkle {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.4; }
-    }
-    @keyframes pulse-green {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(6,199,85,0.5); }
-      50%       { box-shadow: 0 0 0 12px rgba(6,199,85,0); }
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* Loading overlay */
+    /* ── Loading Overlay ── */
     #loading-overlay {
       display: none;
       position: fixed;
@@ -844,72 +667,85 @@
       animation: spin 700ms linear infinite;
     }
 
-    .loading-text {
-      font-size: 15px;
-      color: rgba(255,255,255,0.7);
+    .loading-text { font-size: 15px; color: rgba(255,255,255,0.7); }
+
+    /* ── Animations ── */
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
     }
+    @keyframes sparkle {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+    @keyframes pulse-green {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(6,199,85,0.5); }
+      50%       { box-shadow: 0 0 0 12px rgba(6,199,85,0); }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 
 <body>
 
-  <!-- ════════════════════════════════════
-       화면 1: 동의 팝업 (Consent)
-       ════════════════════════════════════ -->
+  <!-- ════════════════════════════
+       Step 1: 동의 팝업 (Consent)
+       ════════════════════════════ -->
   <div id="screen-consent" class="screen active">
     <div class="consent-sheet">
-      <div class="consent-brand">
-        <span class="consent-brand-icon">🌿</span>
-        <div>
-          <div class="consent-brand-name">命星<span>AI</span></div>
-          <div style="font-size:11px;color:#9CA3AF;">四柱推命AIサービス</div>
+      <div class="consent-handle"></div>
+      <div class="consent-inner">
+        <div class="consent-brand">
+          <span class="consent-brand-icon">🌿</span>
+          <div>
+            <div class="consent-brand-name">命星<span>AI</span></div>
+            <div style="font-size:11px;color:#9CA3AF;">四柱推命AIサービス</div>
+          </div>
         </div>
+
+        <div class="consent-desc">
+          占い結果の生成のため、生年月日を一時的に利用します。<br>
+          データは処理後即時削除され、保存されません。<br>
+          <strong>18歳以上の方のみご利用いただけます。</strong>
+        </div>
+
+        <div class="consent-checks">
+          <label class="consent-check-item">
+            <input type="checkbox" id="check-age" class="consent-checkbox">
+            <span class="consent-check-text">18歳以上であることを確認しました</span>
+          </label>
+
+          <label class="consent-check-item">
+            <input type="checkbox" id="check-privacy" class="consent-checkbox">
+            <span class="consent-check-text">
+              <a href="../legal/privacy.html" target="_blank">プライバシーポリシー</a>に同意します
+            </span>
+          </label>
+
+          <label class="consent-check-item">
+            <input type="checkbox" id="check-tokushoho" class="consent-checkbox">
+            <span class="consent-check-text">
+              <a href="../legal/tokushoho.html" target="_blank">特定商取引法に基づく表示</a>を確認しました
+            </span>
+          </label>
+        </div>
+
+        <button id="consent-btn" class="consent-btn" disabled>
+          占いを始める 🌿
+        </button>
       </div>
-
-      <div class="consent-desc">
-        占い結果の生成のため、生年月日を一時的に利用します。<br>
-        データは処理後即時削除され、保存されません。<br>
-        <strong>18歳以上の方のみご利用いただけます。</strong>
-      </div>
-
-      <div class="consent-checks">
-        <label class="consent-check-item">
-          <input type="checkbox" id="check-age" class="consent-checkbox">
-          <span class="consent-check-text">18歳以上であることを確認しました</span>
-        </label>
-
-        <label class="consent-check-item">
-          <input type="checkbox" id="check-privacy" class="consent-checkbox">
-          <span class="consent-check-text">
-            <a href="../legal/privacy.html" target="_blank">プライバシーポリシー</a>に同意します
-          </span>
-        </label>
-
-        <label class="consent-check-item">
-          <input type="checkbox" id="check-tokushoho" class="consent-checkbox">
-          <span class="consent-check-text">
-            <a href="../legal/tokushoho.html" target="_blank">特定商取引法に基づく表示</a>を確認しました
-          </span>
-        </label>
-      </div>
-
-      <button id="consent-btn" class="consent-btn" disabled>
-        占いを始める 🌿
-      </button>
     </div>
   </div>
 
 
-  <!-- ════════════════════════════════════
-       화면 2: 메인 메뉴
-       ════════════════════════════════════ -->
+  <!-- ════════════════════════════
+       Step 2-A: メインメニュー
+       ════════════════════════════ -->
   <div id="screen-menu" class="screen">
-    <!-- 바이럴 배너 -->
     <div class="menu-viral-bar">
       <strong>✦ みんな最近これで占ってる ✦</strong>
     </div>
 
-    <!-- 히어로 -->
     <div class="menu-hero">
       <div class="menu-hero-stars">✦ ✧ ✦ ✧ ✦ ✧ ✦</div>
       <span class="menu-hero-icon">🌿</span>
@@ -921,14 +757,13 @@
       <span class="menu-hero-badge">✨ 1占い ¥200</span>
     </div>
 
-    <!-- 서비스 선택 -->
     <div class="menu-section-title">占いを選んでください</div>
     <div class="menu-cards">
       <button class="menu-card" id="menu-saju" data-type="saju">
         <span class="menu-card-emoji">🔮</span>
         <div class="menu-card-title">四柱推命</div>
         <div class="menu-card-jp">しちゅうすいめい</div>
-        <div style="font-size:12px;color:#6B7280;line-height:1.5;">性格・才能<br>今年の運勢</div>
+        <div class="menu-card-desc">性格・才能<br>今年の運勢</div>
         <span class="menu-card-price">¥200</span>
       </button>
 
@@ -936,25 +771,25 @@
         <span class="menu-card-emoji">💞</span>
         <div class="menu-card-title">相性占い</div>
         <div class="menu-card-jp">あいしょううらない</div>
-        <div style="font-size:12px;color:#6B7280;line-height:1.5;">ふたりの縁<br>相性スコア</div>
+        <div class="menu-card-desc">ふたりの縁<br>相性スコア</div>
         <span class="menu-card-price">¥200</span>
       </button>
     </div>
 
-    <!-- 법적 링크 -->
-    <div class="menu-footer" style="margin-top:auto;padding-top:32px;">
+    <div class="menu-footer">
       <a href="../legal/privacy.html">プライバシーポリシー</a>
       <div class="menu-footer-sep"></div>
       <a href="../legal/tokushoho.html">特定商取引法</a>
       <div class="menu-footer-sep"></div>
-      <a href="mailto:kgg2512@gmail.com">お問い合わせ</a>
+      <a href="../legal/terms.html">利用規約</a>
     </div>
   </div>
 
 
-  <!-- ════════════════════════════════════
-       화면 3: 입력 폼
-       ════════════════════════════════════ -->
+  <!-- ════════════════════════════
+       Step 2-B: 입력 폼
+       生年月日 + 性別
+       ════════════════════════════ -->
   <div id="screen-form" class="screen">
     <div class="form-header">
       <button class="form-back-btn" id="form-back-btn">←</button>
@@ -1013,6 +848,19 @@
         </div>
       </div>
 
+      <!-- 性別 선택 -->
+      <div class="form-group">
+        <label class="form-label">性別</label>
+        <div class="gender-row">
+          <button class="gender-btn" id="gender-male" data-gender="male">
+            ♂ 男性
+          </button>
+          <button class="gender-btn" id="gender-female" data-gender="female">
+            ♀ 女性
+          </button>
+        </div>
+      </div>
+
       <!-- 相手 입력 (궁합 전용) -->
       <div id="partner-section" style="display:none;">
         <div class="form-divider"></div>
@@ -1040,6 +888,18 @@
             </div>
           </div>
         </div>
+
+        <div class="form-group">
+          <label class="form-label">お相手の性別</label>
+          <div class="gender-row">
+            <button class="gender-btn" id="gender2-male" data-gender2="male">
+              ♂ 男性
+            </button>
+            <button class="gender-btn" id="gender2-female" data-gender2="female">
+              ♀ 女性
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="form-note">
@@ -1047,68 +907,27 @@
       </div>
     </div>
 
-    <!-- Sticky CTA -->
     <div class="form-cta">
       <button class="form-submit-btn" id="form-submit-btn" disabled>
-        ¥200 で占う →
+        点占い開始 ¥200 →
       </button>
     </div>
   </div>
 
 
-  <!-- ════════════════════════════════════
-       화면 4: 결제 (Stripe)
-       ════════════════════════════════════ -->
-  <div id="screen-payment" class="screen">
-    <div class="payment-header">
-      <button class="form-back-btn" id="payment-back-btn" style="margin-bottom:10px;">←</button>
-      <div class="payment-title">お支払い</div>
-      <div style="font-size:13px;color:#9CA3AF;">安全な決済はStripeが処理します</div>
-    </div>
-
-    <div class="payment-body">
-      <div class="payment-summary">
-        <div class="payment-summary-row">
-          <span class="payment-summary-label">サービス</span>
-          <span class="payment-summary-value" id="payment-service-label">四柱推命</span>
-        </div>
-        <div class="payment-summary-row payment-summary-total">
-          <span class="payment-summary-label">合計</span>
-          <span class="payment-summary-value">¥200（税込）</span>
-        </div>
-      </div>
-
-      <div class="stripe-container">
-        <div class="stripe-label">クレジットカード / デビットカード</div>
-        <!-- Stripe Elements がここに注入 -->
-        <div id="stripe-card-element"></div>
-        <div id="stripe-error" class="stripe-error"></div>
-        <div class="security-note">
-          🔐 Stripe SSL暗号化で保護されています
-        </div>
-      </div>
-
-      <button class="payment-btn" id="payment-submit-btn">
-        ¥200 を支払って占う ✨
-      </button>
-    </div>
-  </div>
-
-
-  <!-- ════════════════════════════════════
-       화면 5: 결과 화면 (Result)
-       ════════════════════════════════════ -->
+  <!-- ════════════════════════════
+       Step 4: 결과 화면 (Result)
+       ════════════════════════════ -->
   <div id="screen-result" class="screen">
     <div class="result-bg"></div>
     <div class="result-container">
 
-      <!-- 상단 바 -->
       <div class="result-top-bar">
         <div class="result-brand">🌿 命星AI</div>
         <span class="result-type-badge" id="result-type-badge">四柱推命</span>
       </div>
 
-      <!-- 사주 4기둥 (사주 전용) -->
+      <!-- 4기둥 (사주 전용) -->
       <div class="pillars-wrap" id="pillars-wrap">
         <div class="pillar-card">
           <span class="pillar-kanji" id="pillar-year-k">甲</span>
@@ -1132,7 +951,7 @@
         </div>
       </div>
 
-      <!-- 궁합 점수 (궁합 전용, 기본 숨김) -->
+      <!-- 궁합 점수 (궁합 전용) -->
       <div class="score-display" id="score-display" style="display:none;">
         <span class="score-label">相性スコア</span>
         <div>
@@ -1145,20 +964,17 @@
       <!-- 결과 텍스트 -->
       <div class="result-content-card">
         <div class="result-section-title">✦ 鑑定結果</div>
-        <div class="result-text" id="result-text">
-          <!-- LLM 결과가 여기 주입됨 -->
-          結果を読み込み中…
-        </div>
+        <div class="result-text" id="result-text">結果を読み込み中…</div>
       </div>
 
-      <!-- 면책 문구 (CLO 필수) -->
+      <!-- 면책 문구 -->
       <div class="result-disclaimer">
         ※本結果は四柱推命アルゴリズムによる自動計算です。予言・保証ではございません。
         人生の重要な決断には専門家のご意見をお求めください。
         ¥200の決済はStripeにより処理されました。
       </div>
 
-      <!-- LINE 공유 버튼 -->
+      <!-- Step 5: LINE 공유 -->
       <button class="share-btn" id="share-btn">
         <span class="share-btn-icon">💬</span>
         LINEでシェアする
@@ -1178,34 +994,40 @@
   </div>
 
 
-  <!-- ════════════════════════════════════
-       app.js (인라인 — 실제 배포 시 app.js 분리)
-       ════════════════════════════════════ -->
   <script>
-  /* ── 상태 관리 ── */
+  /* ══════════════════════════════════════
+     State
+     ══════════════════════════════════════ */
   const state = {
-    type: null,      // 'saju' | 'compatibility'
-    userData: {},    // year1, month1, day1, time1
-    partnerData: {}, // year2, month2, day2
-    paymentIntentId: null,
+    type: null,           // 'saju' | 'compatibility'
+    gender1: null,        // 'male' | 'female'
+    gender2: null,        // 'male' | 'female' (궁합 전용)
+    userData: {},
+    partnerData: {},
+    paymentSessionId: null,
     result: null,
   };
 
-  /* ── 화면 전환 ── */
+  /* ══════════════════════════════════════
+     Utilities
+     ══════════════════════════════════════ */
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const target = document.getElementById(id);
-    if (target) target.classList.add('active');
+    if (target) {
+      target.classList.add('active');
+      window.scrollTo(0, 0);
+    }
   }
 
-  /* ── 로딩 오버레이 ── */
-  function setLoading(visible, text = 'AIが鑑定中…') {
-    const overlay = document.getElementById('loading-overlay');
-    document.getElementById('loading-text').textContent = text;
-    overlay.classList.toggle('active', visible);
+  function setLoading(visible, text) {
+    document.getElementById('loading-text').textContent = text || 'AIが鑑定中…';
+    document.getElementById('loading-overlay').classList.toggle('active', visible);
   }
 
-  /* ── 1. 동의 팝업 ── */
+  /* ══════════════════════════════════════
+     Step 1 — 동의 팝업
+     ══════════════════════════════════════ */
   const checkboxIds = ['check-age', 'check-privacy', 'check-tokushoho'];
   checkboxIds.forEach(id => {
     document.getElementById(id).addEventListener('change', () => {
@@ -1215,12 +1037,13 @@
   });
 
   document.getElementById('consent-btn').addEventListener('click', () => {
-    // 동의 완료 — localStorage에 기록 (재방문 시 팝업 스킵용)
     try { localStorage.setItem('meisei_consent', '1'); } catch(e) {}
     showScreen('screen-menu');
   });
 
-  /* ── 2. 메인 메뉴 ── */
+  /* ══════════════════════════════════════
+     Step 2-A — 메인 메뉴
+     ══════════════════════════════════════ */
   document.getElementById('menu-saju').addEventListener('click', () => {
     state.type = 'saju';
     setupForm();
@@ -1233,18 +1056,22 @@
     showScreen('screen-form');
   });
 
-  /* ── 3. 폼 설정 ── */
+  /* ══════════════════════════════════════
+     Step 2-B — 입력 폼
+     ══════════════════════════════════════ */
   function setupForm() {
-    // 제목 설정
     const titles = { saju: '四柱推命', compatibility: '相性占い' };
     document.getElementById('form-title').textContent = titles[state.type];
-
-    // 파트너 섹션 토글
     document.getElementById('partner-section').style.display =
       state.type === 'compatibility' ? 'block' : 'none';
 
-    // 연도/월/일 옵션 생성
+    // 성별 초기화
+    state.gender1 = null;
+    state.gender2 = null;
+    document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('selected'));
+
     populateDateSelects();
+    checkFormValidity();
   }
 
   function populateDateSelects() {
@@ -1253,7 +1080,6 @@
     ['year1', 'year2'].forEach(id => {
       const sel = document.getElementById(id);
       if (!sel) return;
-      // 기존 옵션 제거 (첫 번째 placeholder 제외)
       while (sel.options.length > 1) sel.remove(1);
       for (let y = currentYear - 15; y >= 1900; y--) {
         const opt = document.createElement('option');
@@ -1288,18 +1114,17 @@
     });
   }
 
-  /* 폼 유효성 → CTA 활성화 */
   function checkFormValidity() {
     const y1 = document.getElementById('year1').value;
     const m1 = document.getElementById('month1').value;
     const d1 = document.getElementById('day1').value;
-    let valid = y1 && m1 && d1;
+    let valid = !!(y1 && m1 && d1 && state.gender1);
 
     if (state.type === 'compatibility') {
       const y2 = document.getElementById('year2').value;
       const m2 = document.getElementById('month2').value;
       const d2 = document.getElementById('day2').value;
-      valid = valid && y2 && m2 && d2;
+      valid = valid && !!(y2 && m2 && d2 && state.gender2);
     }
 
     document.getElementById('form-submit-btn').disabled = !valid;
@@ -1310,236 +1135,253 @@
     if (el) el.addEventListener('change', checkFormValidity);
   });
 
+  // 성별 버튼 이벤트
+  ['gender-male', 'gender-female'].forEach(id => {
+    document.getElementById(id).addEventListener('click', () => {
+      document.getElementById('gender-male').classList.remove('selected');
+      document.getElementById('gender-female').classList.remove('selected');
+      document.getElementById(id).classList.add('selected');
+      state.gender1 = id === 'gender-male' ? 'male' : 'female';
+      checkFormValidity();
+    });
+  });
+
+  ['gender2-male', 'gender2-female'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('click', () => {
+        document.getElementById('gender2-male').classList.remove('selected');
+        document.getElementById('gender2-female').classList.remove('selected');
+        document.getElementById(id).classList.add('selected');
+        state.gender2 = id === 'gender2-male' ? 'male' : 'female';
+        checkFormValidity();
+      });
+    }
+  });
+
   document.getElementById('form-back-btn').addEventListener('click', () => {
     showScreen('screen-menu');
   });
 
-  /* 폼 제출 → 결제 화면 */
-  document.getElementById('form-submit-btn').addEventListener('click', () => {
+  /* ══════════════════════════════════════
+     Step 3 — Stripe Checkout 리디렉션
+     ══════════════════════════════════════ */
+  document.getElementById('form-submit-btn').addEventListener('click', async () => {
     // 입력 데이터 수집
     state.userData = {
-      year:  document.getElementById('year1').value,
-      month: document.getElementById('month1').value,
-      day:   document.getElementById('day1').value,
-      time:  document.getElementById('time1').value,
+      year:   document.getElementById('year1').value,
+      month:  document.getElementById('month1').value,
+      day:    document.getElementById('day1').value,
+      time:   document.getElementById('time1').value,
+      gender: state.gender1,
     };
     if (state.type === 'compatibility') {
       state.partnerData = {
-        year:  document.getElementById('year2').value,
-        month: document.getElementById('month2').value,
-        day:   document.getElementById('day2').value,
+        year:   document.getElementById('year2').value,
+        month:  document.getElementById('month2').value,
+        day:    document.getElementById('day2').value,
+        gender: state.gender2,
       };
     }
 
-    // 결제 화면 레이블 설정
-    const labels = { saju: '四柱推命', compatibility: '相性占い' };
-    document.getElementById('payment-service-label').textContent = labels[state.type];
-
-    showScreen('screen-payment');
-    initStripe();
-  });
-
-  /* ── 4. Stripe 결제 ── */
-  let stripe, stripeElements, cardElement;
-
-  function initStripe() {
-    // 실제 배포 시 publishable key를 환경에서 주입
-    const STRIPE_PK = window.STRIPE_PUBLISHABLE_KEY || 'pk_test_REPLACE_ME';
-    if (typeof Stripe === 'undefined') {
-      console.warn('Stripe.js not loaded');
-      return;
-    }
-    if (stripe) return; // 이미 초기화됨
-
-    stripe = Stripe(STRIPE_PK);
-    stripeElements = stripe.elements();
-    cardElement = stripeElements.create('card', {
-      style: {
-        base: {
-          fontFamily: "'Noto Sans JP', sans-serif",
-          fontSize: '16px',
-          color: '#1A1A2E',
-          '::placeholder': { color: '#9CA3AF' },
-        },
-        invalid: { color: '#EF4444' },
-      },
-    });
-    cardElement.mount('#stripe-card-element');
-    cardElement.on('change', e => {
-      const errEl = document.getElementById('stripe-error');
-      if (e.error) {
-        errEl.textContent = e.error.message;
-        errEl.style.display = 'block';
-      } else {
-        errEl.style.display = 'none';
-      }
-    });
-  }
-
-  document.getElementById('payment-back-btn').addEventListener('click', () => {
-    showScreen('screen-form');
-  });
-
-  document.getElementById('payment-submit-btn').addEventListener('click', async () => {
-    setLoading(true, '決済処理中…');
-    const btn = document.getElementById('payment-submit-btn');
-    btn.disabled = true;
+    setLoading(true, '決済ページを準備中…');
 
     try {
-      // CF Workers에 결제 세션 요청
       const WORKER_URL = window.WORKER_URL || 'https://saju-worker.YOUR_ACCOUNT.workers.dev';
-      const resp = await fetch(`${WORKER_URL}/api/payment`, {
+      const token = window._liffAccessToken || '';
+
+      // CF Worker에 Stripe Checkout Session 요청
+      const resp = await fetch(`${WORKER_URL}/api/checkout`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: state.type }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          type: state.type,
+          userData: state.userData,
+          partnerData: state.type === 'compatibility' ? state.partnerData : undefined,
+        }),
       });
-      const { clientSecret } = await resp.json();
 
-      const { paymentIntent, error } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: { card: cardElement },
-      });
+      if (!resp.ok) throw new Error('サーバーエラーが発生しました');
 
-      if (error) throw new Error(error.message);
+      const { checkoutUrl, sessionId } = await resp.json();
 
-      state.paymentIntentId = paymentIntent.id;
-      setLoading(true, 'AIが鑑定中…');
-      await fetchFortune();
+      // session ID를 sessionStorage에 보관 (결제 완료 후 결과 조회용)
+      try { sessionStorage.setItem('meisei_session', sessionId); } catch(e) {}
+
+      // Stripe Checkout 페이지로 리디렉션
+      setLoading(false);
+      window.location.href = checkoutUrl;
 
     } catch (err) {
       setLoading(false);
-      const errEl = document.getElementById('stripe-error');
-      errEl.textContent = err.message;
-      errEl.style.display = 'block';
-      btn.disabled = false;
+      alert('エラーが発生しました。もう一度お試しください。\n' + err.message);
     }
   });
 
-  /* ── 5. 운세 결과 가져오기 ── */
-  async function fetchFortune() {
-    const WORKER_URL = window.WORKER_URL || 'https://saju-worker.YOUR_ACCOUNT.workers.dev';
-    const token = window._liffAccessToken || '';
+  /* ══════════════════════════════════════
+     Step 4 — 결제 완료 후 결과 로드
+     URL: ?payment=success&session_id=xxx
+     ══════════════════════════════════════ */
+  async function handlePaymentReturn() {
+    const params = new URLSearchParams(window.location.search);
+    const isSuccess = params.get('payment') === 'success';
+    const sessionId = params.get('session_id') || (() => {
+      try { return sessionStorage.getItem('meisei_session'); } catch(e) { return null; }
+    })();
 
-    const body = {
-      type: state.type,
-      paymentIntentId: state.paymentIntentId,
-      userData: state.userData,
-    };
-    if (state.type === 'compatibility') body.partnerData = state.partnerData;
+    if (!isSuccess || !sessionId) return false;
 
-    const resp = await fetch(`${WORKER_URL}/api/fortune`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(body),
-    });
+    // URL 정리 (history replaceState)
+    try { window.history.replaceState({}, '', window.location.pathname); } catch(e) {}
 
-    if (!resp.ok) throw new Error('サーバーエラーが発生しました');
+    setLoading(true, 'AIが鑑定中…');
 
-    const data = await resp.json();
-    state.result = data;
-    setLoading(false);
-    renderResult(data);
-    showScreen('screen-result');
+    try {
+      const WORKER_URL = window.WORKER_URL || 'https://saju-worker.YOUR_ACCOUNT.workers.dev';
+      const token = window._liffAccessToken || '';
+
+      const resp = await fetch(`${WORKER_URL}/api/fortune`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ sessionId }),
+      });
+
+      if (!resp.ok) throw new Error('結果の取得に失敗しました');
+
+      const data = await resp.json();
+      state.type = data.type || 'saju';
+      state.result = data;
+
+      setLoading(false);
+      renderResult(data);
+      showScreen('screen-result');
+      return true;
+
+    } catch (err) {
+      setLoading(false);
+      alert('結果の取得に失敗しました。お問い合わせください。');
+      return false;
+    }
   }
 
-  /* ── 6. 결과 렌더링 ── */
+  /* ══════════════════════════════════════
+     결과 렌더링
+     ══════════════════════════════════════ */
   function renderResult(data) {
-    // type 뱃지
     const badges = { saju: '四柱推命', compatibility: '相性占い' };
-    document.getElementById('result-type-badge').textContent = badges[state.type];
-
-    // 결과 텍스트
+    document.getElementById('result-type-badge').textContent = badges[state.type] || '四柱推命';
     document.getElementById('result-text').textContent = data.text || '';
 
     if (state.type === 'saju') {
-      // 4기둥 표시
       document.getElementById('pillars-wrap').style.display = 'grid';
       document.getElementById('score-display').style.display = 'none';
       if (data.pillars) {
         const p = data.pillars;
-        document.getElementById('pillar-year-k').textContent  = p.year?.kanji  || '—';
-        document.getElementById('pillar-year-r').textContent  = p.year?.reading || '';
-        document.getElementById('pillar-month-k').textContent = p.month?.kanji  || '—';
+        document.getElementById('pillar-year-k').textContent  = p.year?.kanji   || '—';
+        document.getElementById('pillar-year-r').textContent  = p.year?.reading  || '';
+        document.getElementById('pillar-month-k').textContent = p.month?.kanji   || '—';
         document.getElementById('pillar-month-r').textContent = p.month?.reading || '';
-        document.getElementById('pillar-day-k').textContent   = p.day?.kanji    || '—';
-        document.getElementById('pillar-day-r').textContent   = p.day?.reading  || '';
-        document.getElementById('pillar-time-k').textContent  = p.time?.kanji   || '—';
-        document.getElementById('pillar-time-r').textContent  = p.time?.reading || '';
+        document.getElementById('pillar-day-k').textContent   = p.day?.kanji     || '—';
+        document.getElementById('pillar-day-r').textContent   = p.day?.reading   || '';
+        document.getElementById('pillar-time-k').textContent  = p.time?.kanji    || '—';
+        document.getElementById('pillar-time-r').textContent  = p.time?.reading  || '';
       }
     } else {
-      // 궁합 점수
       document.getElementById('pillars-wrap').style.display = 'none';
       document.getElementById('score-display').style.display = 'flex';
       const score = data.score || 0;
       document.getElementById('score-number').textContent = score;
-      const stars = '★'.repeat(Math.round(score/20)) + '☆'.repeat(5 - Math.round(score/20));
-      document.getElementById('score-stars').textContent = stars;
+      const filled = Math.round(score / 20);
+      document.getElementById('score-stars').textContent =
+        '★'.repeat(filled) + '☆'.repeat(5 - filled);
     }
   }
 
-  /* ── 7. LINE 공유 ── */
+  /* ══════════════════════════════════════
+     Step 5 — LINE 공유 (shareTargetPicker)
+     ══════════════════════════════════════ */
   document.getElementById('share-btn').addEventListener('click', async () => {
-    if (!window.liff || !liff.isInClient()) {
+    if (!window.liff) {
       alert('LINE アプリからご利用ください');
       return;
     }
+
     const typeLabel = state.type === 'saju' ? '四柱推命' : '相性占い';
-    const preview = (state.result?.text || '').slice(0, 50) + '…';
-    try {
-      await liff.sendMessages([{
-        type: 'text',
-        text: `✨ 命星AIで${typeLabel}しました！\n\n🌿 ${preview}\n\n▶ 今すぐ無料診断\nhttps://kgg2512.github.io/saju-japan/\n#命星AI #四柱推命 #運勢`,
-      }]);
-    } catch (e) {
-      console.error('Share failed:', e);
+    const preview = (state.result?.text || '').slice(0, 60) + '…';
+    const shareText = `✨ 命星AIで${typeLabel}しました！\n\n🌿 ${preview}\n\n▶ 今すぐ試す\nhttps://liff.line.me/${window.LIFF_ID || ''}\n#命星AI #四柱推命 #運勢`;
+
+    // shareTargetPicker 지원 여부 확인
+    if (liff.isInClient() && liff.isApiAvailable('shareTargetPicker')) {
+      try {
+        const result = await liff.shareTargetPicker([
+          { type: 'text', text: shareText }
+        ], { isMultiple: true });
+
+        if (result && result.status === 'success') {
+          // 공유 성공 피드백
+          const btn = document.getElementById('share-btn');
+          const orig = btn.innerHTML;
+          btn.innerHTML = '✅ シェア完了！';
+          btn.style.background = '#10B981';
+          setTimeout(() => {
+            btn.innerHTML = orig;
+            btn.style.background = '';
+          }, 2000);
+        }
+      } catch (e) {
+        console.error('shareTargetPicker error:', e);
+      }
+    } else {
+      // LIFF 외부 환경 — sendMessages fallback
+      try {
+        await liff.sendMessages([{ type: 'text', text: shareText }]);
+      } catch (e) {
+        console.error('sendMessages error:', e);
+      }
     }
   });
 
   document.getElementById('retry-btn').addEventListener('click', () => {
     state.type = null;
     state.result = null;
-    state.paymentIntentId = null;
+    state.paymentSessionId = null;
     showScreen('screen-menu');
   });
 
-  /* ── 8. LIFF 초기화 ── */
+  /* ══════════════════════════════════════
+     LIFF 초기화
+     ══════════════════════════════════════ */
   async function initApp() {
     const LIFF_ID = window.LIFF_ID || 'REPLACE_WITH_YOUR_LIFF_ID';
 
     try {
       await liff.init({ liffId: LIFF_ID });
-
-      // accessToken은 메모리에만 보관 (localStorage 저장 금지)
       window._liffAccessToken = liff.getAccessToken();
 
-      // 재방문: 동의 완료 여부 확인
+      // 결제 완료 리턴 처리 (최우선)
+      const handled = await handlePaymentReturn();
+      if (handled) return;
+
+      // 동의 여부 확인
       let hasConsent = false;
       try { hasConsent = !!localStorage.getItem('meisei_consent'); } catch(e) {}
 
-      if (hasConsent) {
-        showScreen('screen-menu');
-      } else {
-        showScreen('screen-consent');
-      }
+      showScreen(hasConsent ? 'screen-menu' : 'screen-consent');
 
     } catch (err) {
       console.error('LIFF init error:', err);
-      // LIFF 외부 접근 시 (브라우저 직접) → 테스트 모드로 메뉴 표시
-      showScreen('screen-menu');
+      // 브라우저 직접 접근 (테스트 모드)
+      const handled = await handlePaymentReturn();
+      if (!handled) showScreen('screen-menu');
     }
   }
 
-  // Stripe.js 동적 로드
-  function loadStripeJs() {
-    const script = document.createElement('script');
-    script.src = 'https://js.stripe.com/v3/';
-    script.async = true;
-    document.head.appendChild(script);
-  }
-
-  loadStripeJs();
   initApp();
   </script>
 </body>
