@@ -36,6 +36,10 @@ const MARKETS = {
   my: { price: 600,   currency: 'myr', lang: 'ms',    name: 'MEI', platform: 'web',  minAge: 18 }, // MYR 6.00 (2-decimal: 6*100)
 };
 
+// CSO D4 (2026-06-11): JP 단독 집중 — 결제 가능 마켓 화이트리스트
+// MARKETS 구조는 유지하되, /api/checkout은 ACTIVE_MARKETS만 허용
+const ACTIVE_MARKETS = ['jp'];
+
 function getMarket(marketParam) {
   const m = (marketParam || 'jp').toLowerCase();
   return MARKETS[m] ? { key: m, ...MARKETS[m] } : { key: 'jp', ...MARKETS.jp };
@@ -284,7 +288,8 @@ async function verifyLineSignature(body, signature, secret) {
 // Rate Limiting
 // ──────────────────────────────────────────
 async function checkRateLimit(env, key) {
-  if (!env.KV) return true;
+  // CISO H1: KV 미바인딩 시 fail-closed — 요청 거부 (fail-open 금지)
+  if (!env.KV) return false;
   const rlKey = `rl:${key}:${Math.floor(Date.now() / 60000)}`;
   const count = parseInt(await env.KV.get(rlKey) || '0');
   if (count >= 10) return false;
@@ -380,12 +385,30 @@ function corsResponse(body, status = 200, extra = {}, request = null) {
 async function handleCheckout(request, env) {
   if (request.method !== 'POST') return corsResponse({ error: 'Method not allowed' }, 405);
 
+  // CISO H1: KV fail-closed — 사주 데이터 임시 저장(M3)·결제 재사용 방지에 KV 필수.
+  // 미바인딩 상태로 결제를 받으면 안 됨 → 503
+  if (!env.KV) {
+    return corsResponse({ error: 'Service temporarily unavailable' }, 503);
+  }
+
+  // CISO M2: IP 기반 rate limit을 Stripe 등 외부 호출·검증보다 선행
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const allowed = await checkRateLimit(env, `checkout:${ip}`);
+  if (!allowed) return corsResponse({ error: 'Rate limit exceeded' }, 429);
+
   let body;
   try { body = await request.json(); } catch {
     return corsResponse({ error: 'Invalid JSON' }, 400);
   }
 
   const { market: marketParam, type, userData, returnUrl } = body;
+
+  // CSO D4 (2026-06-11): market 화이트리스트 — 'jp'만 결제 허용
+  const requestedMarket = (marketParam || 'jp').toLowerCase();
+  if (!ACTIVE_MARKETS.includes(requestedMarket)) {
+    return corsResponse({ error: 'Market not available' }, 400);
+  }
+
   if (!['saju', 'compatibility'].includes(type)) {
     return corsResponse({ error: 'Invalid fortune type' }, 400);
   }
@@ -393,12 +416,7 @@ async function handleCheckout(request, env) {
     return corsResponse({ error: 'Missing user data' }, 400);
   }
 
-  // Rate limiting (IP 기반 — session_id 없는 단계)
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-  const allowed = await checkRateLimit(env, `checkout:${ip}`);
-  if (!allowed) return corsResponse({ error: 'Rate limit exceeded' }, 429);
-
-  const mkt = getMarket(marketParam);
+  const mkt = getMarket(requestedMarket);
 
   // 입력 데이터 간단 검증 (프롬프트 인젝션 방어)
   let validated1;
@@ -409,15 +427,25 @@ async function handleCheckout(request, env) {
     return corsResponse({ error: `Invalid date: ${e.message}` }, 400);
   }
 
-  // Stripe Checkout Session 생성
-  const successUrl = returnUrl
-    ? `${returnUrl}?payment=success&session_id={CHECKOUT_SESSION_ID}&market=${mkt.key}`
-    : `https://kgg2512.github.io/saju-paljja/markets/web/app.html?payment=success&session_id={CHECKOUT_SESSION_ID}&market=${mkt.key}`;
-  const cancelUrl = returnUrl
-    ? `${returnUrl}?payment=cancel&market=${mkt.key}`
-    : `https://kgg2512.github.io/saju-paljja/markets/web/app.html?payment=cancel&market=${mkt.key}`;
+  // CISO M1: returnUrl origin 화이트리스트 — https://kgg2512.github.io 외에는 기본 URL 강제.
+  // URL 파싱 실패도 기본값. query/hash는 제거(origin+pathname만 사용)해 파라미터 주입 차단.
+  const DEFAULT_APP_URL = 'https://kgg2512.github.io/saju-paljja/markets/web/app.html';
+  let safeReturnUrl = DEFAULT_APP_URL;
+  if (returnUrl) {
+    try {
+      const parsed = new URL(returnUrl);
+      if (parsed.origin === 'https://kgg2512.github.io') {
+        safeReturnUrl = parsed.origin + parsed.pathname;
+      }
+    } catch { /* 파싱 실패 → 기본값 유지 */ }
+  }
 
-  // Checkout Session metadata에 사주 계산 결과만 저장 (생년월일 원본 저장 금지 — CISO)
+  // Stripe Checkout Session 생성
+  const successUrl = `${safeReturnUrl}?payment=success&session_id={CHECKOUT_SESSION_ID}&market=${mkt.key}`;
+  const cancelUrl  = `${safeReturnUrl}?payment=cancel&market=${mkt.key}`;
+
+  // 사주 계산 (생년월일 원본 저장 금지 — CISO)
+  // CISO M3: 계산 결과는 Stripe metadata가 아닌 KV(TTL 1h)에만 임시 저장
   const hourKanji = validateHour(userData.time);
   const pillars1 = calculateFourPillars(validated1.year, validated1.month, validated1.day, hourKanji);
 
@@ -442,13 +470,10 @@ async function handleCheckout(request, env) {
     'line_items[0][quantity]': '1',
     success_url: successUrl,
     cancel_url: cancelUrl,
-    // metadata: 사주 계산 결과만 (원본 생년월일 절대 저장 금지)
+    // CISO M3: metadata에는 비민감 식별 정보만. 四柱 데이터(pillars/dominant/lacking)는
+    // Stripe 측 영구 저장을 피하기 위해 KV(TTL 1h)로 이전 — 아래 KV.put 참조
     'metadata[market]': mkt.key,
     'metadata[type]': type,
-    'metadata[pillars1]': pillars1.summary.slice(0, 500),
-    'metadata[pillars2]': pillars2Summary.slice(0, 500),
-    'metadata[dominant]': pillars1.dominant,
-    'metadata[lacking]': pillars1.lacking,
   });
 
   const stripeResp = await fetch('https://api.stripe.com/v1/checkout/sessions', {
@@ -468,14 +493,23 @@ async function handleCheckout(request, env) {
 
   const session = await stripeResp.json();
 
-  // KV: 결제 상태만 저장 (TTL 1h) — 생년월일 없음
-  if (env.KV) {
-    await env.KV.put(
-      `cs:${session.id}`,
-      JSON.stringify({ status: 'pending', market: mkt.key, type, createdAt: Date.now() }),
-      { expirationTtl: 3600 }
-    );
-  }
+  // KV: 결제 상태 + 사주 계산 결과 임시 저장 (TTL 1h) — 생년월일 원본 없음
+  // CISO M3: /api/fortune이 이 레코드에서 四柱 데이터를 회수 (Stripe metadata 미사용)
+  // CISO H1: env.KV는 함수 상단에서 보장됨 (fail-closed)
+  await env.KV.put(
+    `cs:${session.id}`,
+    JSON.stringify({
+      status: 'pending',
+      market: mkt.key,
+      type,
+      pillars1: pillars1.summary.slice(0, 500),
+      pillars2: pillars2Summary.slice(0, 500),
+      dominant: pillars1.dominant,
+      lacking: pillars1.lacking,
+      createdAt: Date.now(),
+    }),
+    { expirationTtl: 3600 }
+  );
 
   return corsResponse({ checkoutUrl: session.url, sessionId: session.id });
 }
@@ -486,23 +520,37 @@ async function handleCheckout(request, env) {
 async function handleFortune(request, env) {
   if (request.method !== 'POST') return corsResponse({ error: 'Method not allowed' }, 405);
 
+  // CISO H1: KV fail-closed — KV 미바인딩이면 결제 재사용 검증이 불가능하므로
+  // 운세 생성을 절대 진행하지 않는다 (fail-open 금지) → 503
+  if (!env.KV) {
+    return corsResponse({ error: 'Service temporarily unavailable' }, 503);
+  }
+
+  // CISO M2: IP 기반 rate limit을 KV 조회·Stripe 검증 등 모든 외부 호출보다 선행
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const allowed = await checkRateLimit(env, `fortune:${ip}`);
+  if (!allowed) return corsResponse({ error: 'Rate limit exceeded' }, 429);
+
   let body;
   try { body = await request.json(); } catch {
     return corsResponse({ error: 'Invalid JSON' }, 400);
   }
 
-  const { sessionId, market: marketParam } = body;
+  const { sessionId } = body;
 
-  // CISO: session_id 필수 — 없으면 즉시 거부
-  if (!sessionId) return corsResponse({ error: 'Payment required' }, 402);
-
-  // KV 중복 사용 방지
-  if (env.KV) {
-    const csData = await env.KV.get(`cs:${sessionId}`);
-    if (!csData) return corsResponse({ error: 'Session not found or expired' }, 402);
-    const cs = JSON.parse(csData);
-    if (cs.status === 'used') return corsResponse({ error: 'Session already used' }, 402);
+  // CISO: session_id 필수 — 없으면 즉시 거부. Stripe 형식(cs_...)만 허용
+  if (!sessionId || typeof sessionId !== 'string' || !/^cs_[A-Za-z0-9_]+$/.test(sessionId)) {
+    return corsResponse({ error: 'Payment required' }, 402);
   }
+
+  // KV 중복 사용 방지 (CISO H1: 무조건 검사 — 스킵 경로 없음)
+  const csRaw = await env.KV.get(`cs:${sessionId}`);
+  if (!csRaw) return corsResponse({ error: 'Session not found or expired' }, 402);
+  let cs;
+  try { cs = JSON.parse(csRaw); } catch {
+    return corsResponse({ error: 'Session not found or expired' }, 402);
+  }
+  if (cs.status === 'used') return corsResponse({ error: 'Session already used' }, 402);
 
   // Stripe Checkout Session 실제 결제 상태 검증
   const stripeResp = await fetch(
@@ -516,21 +564,18 @@ async function handleFortune(request, env) {
     return corsResponse({ error: 'Payment not completed' }, 402);
   }
 
-  // metadata에서 사주 정보 추출 (CISO: 생년월일 원본 없음, 계산 결과만)
-  const meta = session.metadata || {};
-  const type = meta.type || 'saju';
-  const mkt = getMarket(marketParam || meta.market);
-  const pillars1Summary = meta.pillars1 || '';
-  const pillars2Summary = meta.pillars2 || '';
-
-  // Rate limiting (session_id 기반)
-  const allowed = await checkRateLimit(env, `fortune:${sessionId}`);
-  if (!allowed) return corsResponse({ error: 'Rate limit exceeded' }, 429);
+  // CISO M3: 사주 정보는 checkout 시 KV에 저장한 레코드에서 회수
+  // (Stripe metadata 미사용 — 생년월일 원본 없음, 계산 결과만)
+  // market도 클라이언트 파라미터가 아닌 KV 레코드 값을 신뢰
+  const type = cs.type || 'saju';
+  const mkt = getMarket(cs.market);
+  const pillars1Summary = cs.pillars1 || '';
+  const pillars2Summary = cs.pillars2 || '';
 
   // 궁합 점수 계산
   let compatScore = null;
   if (type === 'compatibility' && pillars2Summary) {
-    const dominant1 = meta.dominant || '土';
+    const dominant1 = cs.dominant || '土';
     const SHENG = { 木:'火', 火:'土', 土:'金', 金:'水', 水:'木' };
     const KE    = { 木:'土', 火:'金', 土:'水', 金:'木', 水:'火' };
     // 두 번째 오행 dominant 파싱 (pillars2Summary에서)
@@ -569,21 +614,27 @@ async function handleFortune(request, env) {
     ? msgSaju(pillars1Summary)
     : msgCompat(pillars1Summary, pillars2Summary, compatScore);
 
+  // CISO H2: TOCTOU 방지 — LLM 호출 '전'에 used 선마킹.
+  // 동시 요청이 같은 sessionId로 들어와도 두 번째 요청은 위의 'used' 체크에서 차단됨.
+  // 선마킹 시 사주 데이터는 제거 (사용 완료 레코드에 잔존 금지)
+  await env.KV.put(
+    `cs:${sessionId}`,
+    JSON.stringify({ status: 'used', market: mkt.key, type, usedAt: Date.now() }),
+    { expirationTtl: 3600 }
+  );
+
   let fortuneText;
   try {
     fortuneText = await callOpenAI(systemPrompt, userMessage, env.OPENAI_API_KEY, 600);
   } catch(e) {
     console.error('OpenAI error:', e);
+    // CISO H2: LLM 실패 시 선마킹 롤백 — 원본 레코드 복원으로 정당한 재시도 허용
+    try {
+      await env.KV.put(`cs:${sessionId}`, csRaw, { expirationTtl: 3600 });
+    } catch (rollbackErr) {
+      console.error('KV rollback failed:', rollbackErr);
+    }
     return corsResponse({ error: 'Fortune generation failed' }, 500);
-  }
-
-  // KV 중복 사용 방지 업데이트
-  if (env.KV) {
-    await env.KV.put(
-      `cs:${sessionId}`,
-      JSON.stringify({ status: 'used', market: mkt.key, type, usedAt: Date.now() }),
-      { expirationTtl: 3600 }
-    );
   }
 
   // 결과 반환 (메모리에서만, 저장 안 함)

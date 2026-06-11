@@ -428,6 +428,13 @@
               <a href="../japan/legal/terms.html" target="_blank" id="terms-link">利用規約</a>を確認しました
             </span>
           </label>
+          <!-- CLO H3 (2026-06-11): 特商法 표시 확인 동의 — 결제 진입 전 필수 -->
+          <label class="consent-check-item">
+            <input type="checkbox" id="check-tokushoho" class="consent-checkbox">
+            <span class="consent-check-text" id="check-tokushoho-label">
+              <a href="../japan/legal/tokushoho.html" target="_blank" id="tokushoho-link">特定商取引法に基づく表示</a>を確認しました
+            </span>
+          </label>
         </div>
         <button id="consent-btn" class="consent-btn" disabled id="consent-btn-text">
           占いを始める 🌿
@@ -469,6 +476,8 @@
       <a href="../japan/legal/privacy.html" id="footer-privacy">プライバシーポリシー</a>
       <div class="menu-footer-sep"></div>
       <a href="../japan/legal/terms.html" id="footer-terms">利用規約</a>
+      <div class="menu-footer-sep"></div>
+      <a href="../japan/legal/tokushoho.html" id="footer-tokushoho">特定商取引法に基づく表示</a>
     </div>
   </div>
 
@@ -1081,7 +1090,8 @@ function setLoading(visible, text) {
 /* ══════════════════════════════════════
    동의 팝업
    ══════════════════════════════════════ */
-const checkboxIds = ['check-age', 'check-privacy', 'check-terms'];
+// CLO H3: 特商法 표시 확인(check-tokushoho)도 결제 진입 게이트에 포함
+const checkboxIds = ['check-age', 'check-privacy', 'check-terms', 'check-tokushoho'];
 checkboxIds.forEach(id => {
   document.getElementById(id).addEventListener('change', () => {
     const allChecked = checkboxIds.every(i => document.getElementById(i).checked);
@@ -1090,7 +1100,7 @@ checkboxIds.forEach(id => {
 });
 
 document.getElementById('consent-btn').addEventListener('click', () => {
-  try { localStorage.setItem('meisei_consent_v2', '1'); } catch(e) {}
+  try { localStorage.setItem('meisei_consent_v3', '1'); } catch(e) {} // v3: 特商法 동의 추가로 기존 동의 무효화
   showScreen('screen-menu');
 });
 
@@ -1437,7 +1447,7 @@ async function initApp() {
 
   // 동의 여부 확인
   let hasConsent = false;
-  try { hasConsent = !!localStorage.getItem('meisei_consent_v2'); } catch(e) {}
+  try { hasConsent = !!localStorage.getItem('meisei_consent_v3'); } catch(e) {}
 
   showScreen(hasConsent ? 'screen-menu' : 'screen-consent');
 }

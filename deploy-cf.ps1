@@ -3,6 +3,11 @@
 # 실행: cd "C:\Users\kgg25\Desktop\사주팔자" ; .\deploy-cf.ps1
 #
 # 전제 조건: Node.js / npm 설치됨
+#
+# ⚠️ ARCHIVED — markets/japan/worker 는 배포하지 않는다 (CSO D1 20260611).
+#    web worker(the-fate-web, markets/web/worker)가 JP 마켓을 단일 서빙한다.
+#    japan worker는 LIFF(/api/checkout)와 엔드포인트 불일치(/api/payment 구플로우)로 아카이브 처리.
+#    이 스크립트는 web worker만 배포한다 — japan worker 배포 단계를 추가하지 말 것.
 
 $ErrorActionPreference = "Stop"
 $RepoRoot = $PSScriptRoot

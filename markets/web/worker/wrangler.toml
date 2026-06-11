@@ -1,6 +1,15 @@
 ﻿# markets/web/worker/wrangler.toml
 # 사주팔자 — 범용 멀티마켓 CF Workers 설정
 #
+# ══════════════════════════════════════════════════════════════
+# ⚠️ 배포 전 체크리스트 (CISO H1: KV 미바인딩 시 worker가 503 fail-closed)
+#   [ ] 1. KV 네임스페이스 생성 후 아래 REPLACE_WITH_KV_NAMESPACE_ID /
+#          REPLACE_WITH_KV_PREVIEW_ID 를 실제 id로 교체 (deploy-cf.ps1이 자동 처리)
+#   [ ] 2. Secrets 등록: OPENAI_API_KEY, STRIPE_SECRET_KEY,
+#          LINE_CHANNEL_SECRET, LINE_CHANNEL_ACCESS_TOKEN
+#   placeholder 상태로 배포하면 /api/checkout, /api/fortune 전부 503 반환됨
+# ══════════════════════════════════════════════════════════════
+#
 # 사전 작업:
 #   1. `wrangler login` — CF 계정 인증
 #   2. KV 네임스페이스 생성:
