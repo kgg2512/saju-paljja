@@ -58,7 +58,7 @@ saju-paljja/
 
 | 마켓 | 가격 | BEP |
 |------|------|-----|
-| Japan (MEI) | ¥200/쿼리 | 월 33건 |
+| Japan (MEI) | ¥500/쿼리 | 월 1~2건 |
 | Korea (MYEONG) | ₩990/쿼리 | — |
 | SE Asia (DUANG/MING) | $1.50/쿼리 | — |
 
