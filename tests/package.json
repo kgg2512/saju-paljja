@@ -1,0 +1,12 @@
+{
+  "name": "saju-paljja-tests",
+  "private": true,
+  "description": "saju-engine v2 vs lunar-javascript(만세력 오라클) 대조 테스트",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node gen-vectors.cjs && node run-tests.mjs"
+  },
+  "dependencies": {
+    "lunar-javascript": "^1.7.7"
+  }
+}
