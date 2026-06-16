@@ -194,9 +194,9 @@
     .form-group { margin-bottom: 16px; }
     .form-label {
       display: block; font-size: 13px; font-weight: 500;
-      color: #6B7280; margin-bottom: 6px;
+      color: #374151; margin-bottom: 6px;
     }
-    .date-row { display: grid; grid-template-columns: 1.2fr 0.9fr 0.9fr; gap: 8px; }
+    .date-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
     .form-select, .form-input {
       height: 52px; border: 1.5px solid #E8ECF0; border-radius: 12px;
       padding: 0 14px; font-family: inherit; font-size: 16px; color: #1A1A2E;
@@ -330,8 +330,8 @@
       letter-spacing: 0.05em; margin-bottom: 12px;
     }
     .result-text {
-      font-size: 15px; line-height: 2; color: rgba(255,255,255,0.88);
-      letter-spacing: 0.02em; white-space: pre-wrap;
+      font-size: 15px; line-height: 1.75; color: rgba(255,255,255,0.88);
+      letter-spacing: 0.04em; white-space: pre-wrap;
     }
     .score-display {
       display: flex; flex-direction: column; align-items: center; gap: 6px;
@@ -399,7 +399,10 @@
     /* ── 로딩 오버레이 ── */
     #loading-overlay {
       display: none; position: fixed; inset: 0;
-      background: rgba(15,15,26,0.85); z-index: 3000;
+      background: rgba(15,15,26,0.85);
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+      z-index: 3000;
       flex-direction: column; align-items: center; justify-content: center; gap: 16px;
     }
     #loading-overlay.active { display: flex; }
@@ -422,6 +425,32 @@
       50% { box-shadow: 0 0 0 12px rgba(124,92,191,0); }
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── prefers-reduced-motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* ── focus-visible ── */
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: 2px solid #7C3AED;
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    /* ── 다국어 line-height ── */
+    :lang(th) { line-height: 1.8; }
+    :lang(vi) { letter-spacing: 0.01em; }
+
+    /* ── font-feature-settings (CJK) ── */
+    html { font-feature-settings: 'palt' on; }
   </style>
 </head>
 
@@ -434,7 +463,7 @@
       <div class="consent-handle"></div>
       <div class="consent-inner">
         <div class="consent-brand">
-          <span class="consent-brand-icon">🌿</span>
+          <span class="consent-brand-icon" aria-hidden="true">🌿</span>
           <div>
             <div class="consent-brand-name" id="consent-brand-name"><span>MEI</span></div>
             <div id="consent-brand-sub" style="font-size:11px;color:#9CA3AF;">AI占いサービス</div>
@@ -452,20 +481,20 @@
           <label class="consent-check-item">
             <input type="checkbox" id="check-privacy" class="consent-checkbox">
             <span class="consent-check-text" id="check-privacy-label">
-              <a href="japan/legal/privacy.html" target="_blank" id="privacy-link">プライバシーポリシー</a>に同意します
+              <a href="japan/legal/privacy.html" target="_blank" rel="noreferrer noopener" id="privacy-link">プライバシーポリシー</a>に同意します
             </span>
           </label>
           <label class="consent-check-item">
             <input type="checkbox" id="check-terms" class="consent-checkbox">
             <span class="consent-check-text" id="check-terms-label">
-              <a href="japan/legal/terms.html" target="_blank" id="terms-link">利用規約</a>を確認しました
+              <a href="japan/legal/terms.html" target="_blank" rel="noreferrer noopener" id="terms-link">利用規約</a>を確認しました
             </span>
           </label>
           <!-- CLO H3 (2026-06-11): 特商法 표시 확인 동의 — 결제 진입 전 필수 -->
           <label class="consent-check-item">
             <input type="checkbox" id="check-tokushoho" class="consent-checkbox">
             <span class="consent-check-text" id="check-tokushoho-label">
-              <a href="japan/legal/tokushoho.html" target="_blank" id="tokushoho-link">特定商取引法に基づく表示</a>を確認しました
+              <a href="japan/legal/tokushoho.html" target="_blank" rel="noreferrer noopener" id="tokushoho-link">特定商取引法に基づく表示</a>を確認しました
             </span>
           </label>
         </div>
@@ -491,14 +520,14 @@
     <div class="menu-section-title" id="menu-section-label">占いを選んでください</div>
     <div class="menu-cards">
       <button class="menu-card" id="menu-saju" data-type="saju">
-        <span class="menu-card-emoji">🔮</span>
+        <span class="menu-card-emoji" aria-hidden="true">🔮</span>
         <div class="menu-card-title" id="card-saju-title">四柱推命</div>
         <div class="menu-card-sub" id="card-saju-sub">しちゅうすいめい</div>
         <div class="menu-card-desc" id="card-saju-desc">性格・才能<br>今年の運勢</div>
         <span class="menu-card-price" id="card-saju-price">¥500</span>
       </button>
       <button class="menu-card" id="menu-gung" data-type="compatibility">
-        <span class="menu-card-emoji">💞</span>
+        <span class="menu-card-emoji" aria-hidden="true">💞</span>
         <div class="menu-card-title" id="card-gung-title">相性占い</div>
         <div class="menu-card-sub" id="card-gung-sub">あいしょううらない</div>
         <div class="menu-card-desc" id="card-gung-desc">ふたりの縁<br>相性スコア</div>
@@ -506,11 +535,11 @@
       </button>
     </div>
     <div class="menu-footer">
-      <a href="japan/legal/privacy.html" id="footer-privacy">プライバシーポリシー</a>
+      <a href="japan/legal/privacy.html" id="footer-privacy" target="_blank" rel="noreferrer noopener">プライバシーポリシー</a>
       <div class="menu-footer-sep"></div>
-      <a href="japan/legal/terms.html" id="footer-terms">利用規約</a>
+      <a href="japan/legal/terms.html" id="footer-terms" target="_blank" rel="noreferrer noopener">利用規約</a>
       <div class="menu-footer-sep"></div>
-      <a href="japan/legal/tokushoho.html" id="footer-tokushoho">特定商取引法に基づく表示</a>
+      <a href="japan/legal/tokushoho.html" id="footer-tokushoho" target="_blank" rel="noreferrer noopener">特定商取引法に基づく表示</a>
     </div>
   </div>
 
@@ -531,13 +560,13 @@
         <label class="form-label" id="dob-label">生年月日</label>
         <div class="date-row">
           <div class="form-select-wrap">
-            <select class="form-select" id="year1"><option value="" id="year-placeholder">-- 年</option></select>
+            <select class="form-select" id="year1" aria-label="生年月日（年）"><option value="" id="year-placeholder">-- 年</option></select>
           </div>
           <div class="form-select-wrap">
-            <select class="form-select" id="month1"><option value="" id="month-placeholder">-- 月</option></select>
+            <select class="form-select" id="month1" aria-label="生年月日（月）"><option value="" id="month-placeholder">-- 月</option></select>
           </div>
           <div class="form-select-wrap">
-            <select class="form-select" id="day1"><option value="" id="day-placeholder">-- 日</option></select>
+            <select class="form-select" id="day1" aria-label="生年月日（日）"><option value="" id="day-placeholder">-- 日</option></select>
           </div>
         </div>
       </div>
@@ -550,8 +579,8 @@
       <div class="form-group">
         <label class="form-label" id="gender-label">性別</label>
         <div class="gender-row">
-          <button class="gender-btn" id="gender-male" data-gender="male">♂ <span id="male-label">男性</span></button>
-          <button class="gender-btn" id="gender-female" data-gender="female">♀ <span id="female-label">女性</span></button>
+          <button class="gender-btn" id="gender-male" data-gender="male" aria-pressed="false" aria-label="男性">♂ <span id="male-label">男性</span></button>
+          <button class="gender-btn" id="gender-female" data-gender="female" aria-pressed="false" aria-label="女性">♀ <span id="female-label">女性</span></button>
         </div>
       </div>
 
@@ -625,7 +654,7 @@
     <div class="result-bg"></div>
     <div class="result-container">
       <div class="result-top-bar">
-        <div class="result-brand">🌿 <span id="result-brand-name">MEI</span></div>
+        <div class="result-brand"><span aria-hidden="true">🌿</span> <span id="result-brand-name">MEI</span></div>
         <span class="result-type-badge" id="result-type-badge">四柱推命</span>
       </div>
       <div class="pillars-wrap" id="pillars-wrap">
@@ -689,8 +718,8 @@
   </div>
 
   <!-- 로딩 오버레이 -->
-  <div id="loading-overlay">
-    <div class="loading-spinner"></div>
+  <div id="loading-overlay" role="status" aria-label="AI が分析中">
+    <div class="loading-spinner" aria-hidden="true"></div>
     <div class="loading-text" id="loading-text">AIが鑑定中…</div>
   </div>
 
@@ -1230,12 +1259,35 @@ function checkFormValidity() {
   const m1 = document.getElementById('month1').value;
   const d1 = document.getElementById('day1').value;
   let valid = !!(y1 && m1 && d1 && state.gender1);
+
+  // C4: 날짜 입력 에러 피드백 — .has-error 클래스 연결
+  const dateRow1 = document.getElementById('year1').closest('.form-group');
+  if (dateRow1) {
+    const date1Attempted = !!(y1 || m1 || d1);
+    if (date1Attempted && !(y1 && m1 && d1)) {
+      dateRow1.classList.add('has-error');
+    } else {
+      dateRow1.classList.remove('has-error');
+    }
+  }
+
   if (state.type === 'compatibility') {
     const y2 = document.getElementById('year2').value;
     const m2 = document.getElementById('month2').value;
     const d2 = document.getElementById('day2').value;
     valid = valid && !!(y2 && m2 && d2 && state.gender2);
+
+    const dateRow2 = document.getElementById('year2').closest('.form-group');
+    if (dateRow2) {
+      const date2Attempted = !!(y2 || m2 || d2);
+      if (date2Attempted && !(y2 && m2 && d2)) {
+        dateRow2.classList.add('has-error');
+      } else {
+        dateRow2.classList.remove('has-error');
+      }
+    }
   }
+
   document.getElementById('form-submit-btn').disabled = !valid;
 }
 
@@ -1248,7 +1300,10 @@ function checkFormValidity() {
   document.getElementById(id).addEventListener('click', () => {
     document.getElementById('gender-male').classList.remove('selected');
     document.getElementById('gender-female').classList.remove('selected');
+    document.getElementById('gender-male').setAttribute('aria-pressed', 'false');
+    document.getElementById('gender-female').setAttribute('aria-pressed', 'false');
     document.getElementById(id).classList.add('selected');
+    document.getElementById(id).setAttribute('aria-pressed', 'true');
     state.gender1 = id === 'gender-male' ? 'male' : 'female';
     checkFormValidity();
   });

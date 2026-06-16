@@ -650,6 +650,8 @@
       position: fixed;
       inset: 0;
       background: rgba(15,15,26,0.85);
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
       z-index: 3000;
       flex-direction: column;
       align-items: center;
@@ -683,6 +685,28 @@
       50%       { box-shadow: 0 0 0 12px rgba(6,199,85,0); }
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── prefers-reduced-motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* ── focus-visible ── */
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: 2px solid #7C3AED;
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    /* ── font-feature-settings ── */
+    html { font-feature-settings: 'palt' on; }
 
     /* ── Error Toast ── */
     #error-toast {
@@ -725,7 +749,7 @@
       <div class="consent-handle"></div>
       <div class="consent-inner">
         <div class="consent-brand">
-          <span class="consent-brand-icon">🌿</span>
+          <span class="consent-brand-icon" aria-hidden="true">🌿</span>
           <div>
             <div class="consent-brand-name">命星<span>AI</span></div>
             <div style="font-size:11px;color:#9CA3AF;">四柱推命AIサービス</div>
@@ -747,14 +771,14 @@
           <label class="consent-check-item">
             <input type="checkbox" id="check-privacy" class="consent-checkbox">
             <span class="consent-check-text">
-              <a href="../legal/privacy.html" target="_blank">プライバシーポリシー</a>に同意します
+              <a href="../legal/privacy.html" target="_blank" rel="noreferrer noopener">プライバシーポリシー</a>に同意します
             </span>
           </label>
 
           <label class="consent-check-item">
             <input type="checkbox" id="check-tokushoho" class="consent-checkbox">
             <span class="consent-check-text">
-              <a href="../legal/tokushoho.html" target="_blank">特定商取引法に基づく表示</a>を確認しました
+              <a href="../legal/tokushoho.html" target="_blank" rel="noreferrer noopener">特定商取引法に基づく表示</a>を確認しました
             </span>
           </label>
         </div>
@@ -789,7 +813,7 @@
     <div class="menu-section-title">占いを選んでください</div>
     <div class="menu-cards">
       <button class="menu-card" id="menu-saju" data-type="saju">
-        <span class="menu-card-emoji">🔮</span>
+        <span class="menu-card-emoji" aria-hidden="true">🔮</span>
         <div class="menu-card-title">四柱推命</div>
         <div class="menu-card-jp">しちゅうすいめい</div>
         <div class="menu-card-desc">性格・才能<br>今年の運勢</div>
@@ -797,7 +821,7 @@
       </button>
 
       <button class="menu-card" id="menu-gung" data-type="compatibility">
-        <span class="menu-card-emoji">💞</span>
+        <span class="menu-card-emoji" aria-hidden="true">💞</span>
         <div class="menu-card-title">相性占い</div>
         <div class="menu-card-jp">あいしょううらない</div>
         <div class="menu-card-desc">ふたりの縁<br>相性スコア</div>
@@ -806,11 +830,11 @@
     </div>
 
     <div class="menu-footer">
-      <a href="../legal/privacy.html">プライバシーポリシー</a>
+      <a href="../legal/privacy.html" target="_blank" rel="noreferrer noopener">プライバシーポリシー</a>
       <div class="menu-footer-sep"></div>
-      <a href="../legal/tokushoho.html">特定商取引法</a>
+      <a href="../legal/tokushoho.html" target="_blank" rel="noreferrer noopener">特定商取引法</a>
       <div class="menu-footer-sep"></div>
-      <a href="../legal/terms.html">利用規約</a>
+      <a href="../legal/terms.html" target="_blank" rel="noreferrer noopener">利用規約</a>
     </div>
   </div>
 
@@ -839,17 +863,17 @@
         <label class="form-label">生年月日</label>
         <div class="date-row">
           <div class="form-select-wrap">
-            <select class="form-select" id="year1">
+            <select class="form-select" id="year1" aria-label="生年月日（年）">
               <option value="">-- 年</option>
             </select>
           </div>
           <div class="form-select-wrap">
-            <select class="form-select" id="month1">
+            <select class="form-select" id="month1" aria-label="生年月日（月）">
               <option value="">-- 月</option>
             </select>
           </div>
           <div class="form-select-wrap">
-            <select class="form-select" id="day1">
+            <select class="form-select" id="day1" aria-label="生年月日（日）">
               <option value="">-- 日</option>
             </select>
           </div>
@@ -881,10 +905,10 @@
       <div class="form-group">
         <label class="form-label">性別</label>
         <div class="gender-row">
-          <button class="gender-btn" id="gender-male" data-gender="male">
+          <button class="gender-btn" id="gender-male" data-gender="male" aria-pressed="false" aria-label="男性">
             ♂ 男性
           </button>
-          <button class="gender-btn" id="gender-female" data-gender="female">
+          <button class="gender-btn" id="gender-female" data-gender="female" aria-pressed="false" aria-label="女性">
             ♀ 女性
           </button>
         </div>
@@ -952,7 +976,7 @@
     <div class="result-container">
 
       <div class="result-top-bar">
-        <div class="result-brand">🌿 MEI</div>
+        <div class="result-brand"><span aria-hidden="true">🌿</span> MEI</div>
         <span class="result-type-badge" id="result-type-badge">四柱推命</span>
       </div>
 
@@ -1017,9 +1041,9 @@
 
 
   <!-- 로딩 오버레이 -->
-  <div id="loading-overlay">
-    <div class="loading-spinner"></div>
-    <div class="loading-text" id="loading-text">AIが鑑定中…</div>
+  <div id="loading-overlay" role="status" aria-label="AI が分析中">
+    <div class="loading-spinner" aria-hidden="true"></div>
+    <div class="loading-text" id="loading-text">AIが鑑定中… 少々お待ちください</div>
   </div>
 
   <!-- 에러 토스트 (결제 실패 / 서버 오류) -->

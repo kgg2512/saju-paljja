@@ -21,7 +21,7 @@
   --color-surface:        #FFFFFF;
   --color-border:         #E8ECF0;
   --color-text-primary:   #1A1A2E;
-  --color-text-secondary: #6B7280;
+  --color-text-secondary: #374151;
   --color-text-muted:     #9CA3AF;
 
   /* Colors — Accent */
@@ -108,6 +108,7 @@
 html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
+  font-feature-settings: 'palt' on;
 }
 
 body {
@@ -347,7 +348,7 @@ body {
 
 .date-row {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: var(--space-2);
 }
 
@@ -545,9 +546,9 @@ body {
 .result-body {
   font-family: var(--font-display);
   font-size: var(--text-base);
-  line-height: 1.9;
+  line-height: 1.75;
   color: rgba(255,255,255,0.9);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
   margin-bottom: var(--space-5);
   white-space: pre-wrap;
 }
@@ -601,7 +602,7 @@ body {
 
 .result-pillar-name {
   font-size: 10px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.75);
 }
 
 /* ── 13. Disclaimer ── */
@@ -804,6 +805,25 @@ body {
 .animate-sparkle     { animation: sparkle 3s ease infinite; }
 .animate-fade-in     { animation: fadeIn 400ms ease; }
 .animate-slide-up    { animation: slideUp 350ms ease; }
+
+/* ── prefers-reduced-motion ── */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── focus-visible ── */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #7C3AED;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
 
 /* ── 22. Stars decoration ── */
 .stars-bg {
