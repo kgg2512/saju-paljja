@@ -65,7 +65,8 @@ function corsResponse(body, status = 200) {
 function validateDate(dateStr) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) throw new Error('Invalid date format');
   const [y, m, d] = dateStr.split('-').map(Number);
-  if (y < 1900 || y > 2010) throw new Error('Year out of range');
+  // 엔진 v2 지원 범위(1900~2099)와 일치. 기존 '> 2010'은 복붙 오류로 2011년 이후 출생자를 전원 거부했음.
+  if (y < 1900 || y > 2099) throw new Error('Year out of range');
   if (m < 1 || m > 12) throw new Error('Invalid month');
   if (d < 1 || d > 31) throw new Error('Invalid day');
   return { year: y, month: m, day: d };

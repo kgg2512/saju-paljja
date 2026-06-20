@@ -1,6 +1,15 @@
 ﻿/**
  * markets/japan/worker/index.js
- * MEI — Japan CF Workers 백엔드
+ *
+ * ⚠️⚠️ ARCHIVED — 배포 금지 (CSO D1 2026-06-11) ⚠️⚠️
+ *   JP 마켓은 markets/web/worker (the-fate-web)가 단일 서빙한다.
+ *   이 워커는 (1) 구 결제 플로우(/api/payment PaymentIntent, web은 /api/checkout Session),
+ *   (2) 아래 인라인 사주 엔진이 검증 폐기된 v1(음력 근사 월주 다발성 오류 + 일주 -1일 버그)
+ *   이라는 두 이유로 아카이브됨. deploy-cf.ps1은 이 디렉터리를 배포하지 않는다.
+ *   재활성화하려면 절대 아래 인라인 엔진을 쓰지 말고 web worker처럼
+ *   shared/saju-engine/saju-v2.js(절기 기반, 496벡터 오라클 검증 FAIL 0)를 import할 것.
+ *
+ * MEI — Japan CF Workers 백엔드 (레거시 참조용)
  *
  * CISO 3원칙:
  * 1. 세션처리만 (생년월일 저장 금지, KV는 결제상태 TTL 1h만)
@@ -21,8 +30,9 @@
  */
 
 // ──────────────────────────────────────────
-// 사주 계산 엔진 (인라인 — npm 번들링 전 임시)
-// 실제 배포 시 shared/saju-engine/saju.js import로 교체
+// ⚠️ 폐기된 v1 사주 엔진 (인라인) — 사용 금지
+//   음력 근사 월주(다발성 오류) + 일주 BASE_JDN 앵커 -1일 오프셋 버그.
+//   정식 엔진은 shared/saju-engine/saju-v2.js (절기 기반). 위 ARCHIVED 안내 참조.
 // ──────────────────────────────────────────
 
 const HEAVENLY_STEMS = [
