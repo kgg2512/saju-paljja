@@ -170,7 +170,7 @@ function validateDate(dateStr) {
   if (m < 1 || m > 12) throw new Error('Invalid month');
   if (d < 1 || d > 31) throw new Error('Invalid day');
   const dt = new Date(y, m-1, d);
-  if (isNaN(dt.getTime())) throw new Error('Invalid date');
+  if (isNaN(dt.getTime()) || dt.getMonth() !== m-1 || dt.getDate() !== d) throw new Error('Invalid date');
   if (dt > new Date()) throw new Error('Future date not allowed');
   return { year: y, month: m, day: d };
 }
