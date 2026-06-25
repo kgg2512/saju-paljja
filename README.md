@@ -51,7 +51,7 @@ saju-paljja/
 | Frontend | Vanilla JS + 범용 웹앱 |
 | LLM | GPT-4o mini (마켓별 현지어 운세 해석) |
 | 사주 계산 | JDN 기반 만세력 엔진 (shared/saju-engine) |
-| 결제 | Stripe (글로벌) |
+| 결제 | ⚠️ 미확정 — 해외 결제 레일 블로커. Stripe 한국 개인 불가 판정. MoR(Creem/LS/Polar) 적격성 대기 중. → [docs/PAYMENT_RAIL_STATUS.md](docs/PAYMENT_RAIL_STATUS.md) |
 | Hosting | GitHub Pages + Cloudflare Workers |
 
 ## 수익 모델
