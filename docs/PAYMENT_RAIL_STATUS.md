@@ -2,7 +2,7 @@
 
 > **목적:** 이 문서는 사주팔자 프로젝트 **수익화(결제) 블로커**의 단일 진실 원천이다.
 > 회장이 "사주팔자 현황 브리프"를 요청하면 **이 문서 구조 그대로** 보고한다.
-> **마지막 갱신:** 2026-06-26 (Alpha)
+> **마지막 갱신:** 2026-07-02 (Alpha) — 코드 마이그레이션 Stripe→Creem 완료·독립검증 CONFIRMED
 
 ---
 
@@ -99,6 +99,31 @@ Creem 정책/수수료가 막판에 틀어질 경우 대비. 가입 후 자동�
 - [ ] JCT/VAT 대납 + API + 소액 수수료 명시 확인 (Creem 추가 회신 or 온보딩 중)
 - [ ] 가격 묶음 재설계 (¥500 단건 수수료 증발 대응)
 - [ ] 라이브 전환: KYB/KYC + 한국 은행계좌 → 심사 24~48h
-- [ ] index.js Stripe→Creem 교체 (🔒 CISO+CLO+CFO 게이트, 승인 후 착수)
+- [x] **index.js Stripe→Creem 교체 완료 (2026-07-02, 🔒 CISO+CLO+CFO 게이트 통과·독립검증 CONFIRMED)** — worker·프론트(app.html)·법률(特商法/privacy/terms)·배포스크립트 전부 Creem-ready. 남은 사전의존성 = 회장 온보딩(스토어+prod_id+CREEM_API_KEY)뿐.
 
-> 검증 출처: Gmail 스레드 5건 전문 대조(2026-06-24) · 라인페이 일본 종료 = LY Corp 공식 릴리스 · 엑심베이 개인가입 = 공식/가이드 문서. 미검증 항목은 본문에 "미검증" 명기.
+---
+
+## 6. 코드 마이그레이션 완료 (2026-07-02) + CFO 소액수수료 분석
+
+### 6.1 무엇이 끝났나 (Creem-ready, 라이브 미검증)
+- **worker/index.js:** handleCheckout=`POST {test|prod}/v1/checkouts`(`x-api-key`, product_id·metadata), handleFortune=`GET /v1/checkouts?checkout_id=ch_...` 서버사이드 검증(`status==='completed' && order.status==='paid'`). 세션 regex `cs_`→`ch_`. **CISO 불변식 전량 보존.**
+- **app.html:** 死변수 STRIPE_PK 제거, `checkout_id` 우선 리턴처리(+하위호환 폴백). WORKER_URL config-driven 가드 유지("서비스 준비 중"=미배포 표시).
+- **wrangler.toml:** `CREEM_API_KEY`(secret) + `CREEM_PRODUCT_ID`·`CREEM_MODE="test"`(vars).
+- **법률 6파일(特商法/privacy/terms × markets·docs):** Creem=Merchant of Record 명시. 販売業者=G2 유지, Creem=결제·세무 대행 별도 고지.
+- **deploy-cf.ps1:** Creem 시크릿·선결 안내.
+- **검증:** `node --check`+`wrangler deploy --dry-run` EXIT 0, Stripe 잔재 0(grep), 독립 신선검증 CONFIRMED(결제우회·시크릿누출·CISO회귀 0).
+- **Phase-2 하드닝(미구현):** Creem webhook(`checkout.completed`, HMAC), archived japan/korea worker·LIFF의 Stripe 잔재 정리, cancel_url 복귀 UX.
+
+### 6.2 CFO — ¥500 단건 수수료 잠식 (묶음 재설계 권고, 회장 매출결정)
+Creem 수수료 = **3.9% + $0.40** (세금포함액 기준, 고정 $0.40이 소액을 지배):
+
+| 상품 | 가격(≈USD) | Creem 수수료 | 실효율 |
+|------|-----------|-------------|-------|
+| **현행 ¥500 단건** | ~$3.3 | ~$0.52 | **~16%** 🔴 |
+| ¥800 단건 상향 | ~$5.3 | ~$0.61 | ~11% |
+| **3회팩 ¥1,200** | ~$8.0 | ~$0.71 | **~9%** ✅ |
+| 5회팩 ¥1,800 | ~$12 | ~$0.87 | ~7% |
+
+→ **권고:** 크레딧 묶음(3회 ¥1,200 / 5회 ¥1,800) 도입 시 실효 수수료 16%→~8%로 절반. **정산 마찰**도 고려: payout 최소 $50·홀드 7~12일이라 ¥500 단건은 첫 정산까지 ~15건+ 누적 필요 → 객단가 상향이 정산 주기도 앞당김. **단, 가격은 회장 결정** — 단건 ¥500도 기술적으로 작동하므로 이번 구현 블로커 아님.
+
+> 검증 출처: Gmail 스레드 5건 전문 대조(2026-06-24) · 라인페이 일본 종료 = LY Corp 공식 릴리스 · 엑심베이 개인가입 = 공식/가이드 문서 · Creem API/수수료 = docs.creem.io 직접 스크레이프(2026-07-02). 미검증 항목은 본문에 "미검증" 명기.

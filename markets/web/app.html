@@ -12,7 +12,6 @@
   <!-- window injection points — 배포 시 실제 값으로 교체 -->
   <script>
   window.WORKER_URL = 'REPLACE_WITH_WORKER_URL';
-  window.STRIPE_PK = 'REPLACE_WITH_STRIPE_PK';
   </script>
 
   <style>
@@ -635,13 +634,13 @@
         <div class="payment-price-tax" id="payment-price-tax">税込・ワンタイム</div>
       </div>
       <div class="payment-desc" id="payment-desc">
-        ボタンを1回タップするだけで<br>安全なStripe決済ページへ移動します。
+        ボタンを1回タップするだけで<br>安全なCreem決済ページへ移動します。
       </div>
       <button class="payment-cta-btn" id="payment-cta-btn">
         💳 <span id="payment-cta-text">今すぐ決済する</span>
       </button>
       <div class="payment-security">
-        🔒 <span id="payment-security-text">Stripe による安全な決済</span>
+        🔒 <span id="payment-security-text">Creem による安全な決済</span>
       </div>
       <button class="payment-back-btn" id="payment-back-btn" style="margin-top:8px;">
         <span id="payment-back-text">← 戻る</span>
@@ -758,8 +757,8 @@ const MARKET_I18N = {
     submitBtn: (price) => `占い開始 ${price} →`,
     payTitle: 'AIが鑑定します', payLabel: '鑑定料金',
     payAmount: '¥500', payTax: '税込・ワンタイム',
-    payDesc: 'ボタンを1回タップするだけで<br>安全なStripe決済ページへ移動します。',
-    payCta: '今すぐ決済する', paySecurity: 'Stripe による安全な決済', payBack: '← 戻る',
+    payDesc: 'ボタンを1回タップするだけで<br>安全なCreem決済ページへ移動します。',
+    payCta: '今すぐ決済する', paySecurity: 'Creem による安全な決済', payBack: '← 戻る',
     loadingCheckout: '決済ページを準備中…', loadingFortune: 'AIが鑑定中…',
     sajuBadge: '四柱推命', gungBadge: '相性占い',
     pillarNames: ['年柱', '月柱', '日柱', '時柱'],
@@ -807,8 +806,8 @@ const MARKET_I18N = {
     submitBtn: (price) => `เริ่มดูดวง ${price} →`,
     payTitle: 'AI จะทำนายให้คุณ', payLabel: 'ค่าบริการ',
     payAmount: '฿39', payTax: 'รวมภาษี ครั้งเดียว',
-    payDesc: 'แตะปุ่มเพียงครั้งเดียว<br>เพื่อไปยังหน้าชำระเงิน Stripe ที่ปลอดภัย',
-    payCta: 'ชำระเงินเดี๋ยวนี้', paySecurity: 'การชำระเงินปลอดภัยโดย Stripe', payBack: '← กลับ',
+    payDesc: 'แตะปุ่มเพียงครั้งเดียว<br>เพื่อไปยังหน้าชำระเงิน Creem ที่ปลอดภัย',
+    payCta: 'ชำระเงินเดี๋ยวนี้', paySecurity: 'การชำระเงินปลอดภัยโดย Creem', payBack: '← กลับ',
     loadingCheckout: 'กำลังเตรียมหน้าชำระเงิน…', loadingFortune: 'AI กำลังทำนาย…',
     sajuBadge: 'ดูดวง', gungBadge: 'ดูความเข้ากัน',
     pillarNames: ['เสาปี', 'เสาเดือน', 'เสาวัน', 'เสาเวลา'],
@@ -856,8 +855,8 @@ const MARKET_I18N = {
     submitBtn: (price) => `開始算命 ${price} →`,
     payTitle: 'AI將為您算命', payLabel: '算命費用',
     payAmount: 'NT$39', payTax: '含稅・單次付費',
-    payDesc: '只需點擊一次按鈕<br>即可前往安全的 Stripe 付款頁面。',
-    payCta: '立即付款', paySecurity: 'Stripe 安全付款', payBack: '← 返回',
+    payDesc: '只需點擊一次按鈕<br>即可前往安全的 Creem 付款頁面。',
+    payCta: '立即付款', paySecurity: 'Creem 安全付款', payBack: '← 返回',
     loadingCheckout: '正在準備付款頁面…', loadingFortune: 'AI算命中…',
     sajuBadge: '八字', gungBadge: '合婚',
     pillarNames: ['年柱', '月柱', '日柱', '時柱'],
@@ -905,8 +904,8 @@ const MARKET_I18N = {
     submitBtn: (price) => `Start Reading ${price} →`,
     payTitle: 'AI Will Read Your Fortune', payLabel: 'Reading Fee',
     payAmount: '₱59', payTax: 'Tax inclusive · One-time',
-    payDesc: 'Tap the button once<br>to go to the secure Stripe payment page.',
-    payCta: 'Pay Now', paySecurity: 'Secured by Stripe', payBack: '← Back',
+    payDesc: 'Tap the button once<br>to go to the secure Creem payment page.',
+    payCta: 'Pay Now', paySecurity: 'Secured by Creem', payBack: '← Back',
     loadingCheckout: 'Preparing payment page…', loadingFortune: 'AI is reading your fortune…',
     sajuBadge: 'BaZi', gungBadge: 'Compatibility',
     pillarNames: ['Year', 'Month', 'Day', 'Hour'],
@@ -954,8 +953,8 @@ const MARKET_I18N = {
     submitBtn: (price) => `Bắt đầu xem bói ${price} →`,
     payTitle: 'AI sẽ xem bói cho bạn', payLabel: 'Phí xem bói',
     payAmount: '₫25.000', payTax: 'Đã bao gồm thuế · Một lần',
-    payDesc: 'Nhấn nút một lần<br>để đến trang thanh toán Stripe an toàn.',
-    payCta: 'Thanh toán ngay', paySecurity: 'Thanh toán bảo mật bởi Stripe', payBack: '← Quay lại',
+    payDesc: 'Nhấn nút một lần<br>để đến trang thanh toán Creem an toàn.',
+    payCta: 'Thanh toán ngay', paySecurity: 'Thanh toán bảo mật bởi Creem', payBack: '← Quay lại',
     loadingCheckout: 'Đang chuẩn bị trang thanh toán…', loadingFortune: 'AI đang xem bói…',
     sajuBadge: 'Tứ Trụ', gungBadge: 'Hợp Tuổi',
     pillarNames: ['Trụ Năm', 'Trụ Tháng', 'Trụ Ngày', 'Trụ Giờ'],
@@ -1003,8 +1002,8 @@ const MARKET_I18N = {
     submitBtn: (price) => `Mulakan Bacaan ${price} →`,
     payTitle: 'AI Akan Membaca Nasib Anda', payLabel: 'Yuran Bacaan',
     payAmount: 'RM6', payTax: 'Termasuk cukai · Sekali bayar',
-    payDesc: 'Ketik butang sekali<br>untuk pergi ke halaman pembayaran Stripe yang selamat.',
-    payCta: 'Bayar Sekarang', paySecurity: 'Dijamin oleh Stripe', payBack: '← Kembali',
+    payDesc: 'Ketik butang sekali<br>untuk pergi ke halaman pembayaran Creem yang selamat.',
+    payCta: 'Bayar Sekarang', paySecurity: 'Dijamin oleh Creem', payBack: '← Kembali',
     loadingCheckout: 'Menyediakan halaman pembayaran…', loadingFortune: 'AI sedang membaca nasib anda…',
     sajuBadge: 'BaZi', gungBadge: 'Keserasian',
     pillarNames: ['Tahun', 'Bulan', 'Hari', 'Jam'],
@@ -1351,8 +1350,8 @@ document.getElementById('form-submit-btn').addEventListener('click', () => {
 document.getElementById('payment-back-btn').addEventListener('click', () => showScreen('screen-form'));
 
 /* ══════════════════════════════════════
-   결제 CTA — Stripe Checkout 리디렉션
-   CISO: session_id만 sessionStorage 사용, 생년월일 절대 저장 금지
+   결제 CTA — Creem Checkout 리디렉션
+   CISO: session_id(ch_...)만 sessionStorage 사용, 생년월일 절대 저장 금지
    ══════════════════════════════════════ */
 document.getElementById('payment-cta-btn').addEventListener('click', async () => {
   const t = state.i18n;
@@ -1397,12 +1396,14 @@ document.getElementById('payment-cta-btn').addEventListener('click', async () =>
 
 /* ══════════════════════════════════════
    결제 완료 리턴 처리
-   URL: ?payment=success&session_id=xxx
+   URL(Creem): ?payment=success&market=..&checkout_id=ch_..&order_id=..&signature=..
    ══════════════════════════════════════ */
 async function handlePaymentReturn() {
   const params = new URLSearchParams(window.location.search);
-  const isSuccess = params.get('payment') === 'success';
-  const sessionId = params.get('session_id') || (() => {
+  // Creem 리다이렉트: checkout_id 존재 = 결제 리턴. 기존 payment=success도 인정(하위호환)
+  const isSuccess = params.get('payment') === 'success' || !!params.get('checkout_id');
+  // Creem checkout_id 우선 → 레거시 session_id → sessionStorage 폴백
+  const sessionId = params.get('checkout_id') || params.get('session_id') || (() => {
     try { return sessionStorage.getItem('meisei_session_v2'); } catch(e) { return null; }
   })();
 

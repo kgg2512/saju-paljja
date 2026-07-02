@@ -12,14 +12,14 @@
  * 3. CF Secrets (API 키 하드코딩 절대 금지)
  *
  * 엔드포인트:
- *   POST /api/checkout     — Stripe Checkout Session 생성 (마켓별 가격/통화)
+ *   POST /api/checkout     — Creem Checkout 생성 (리다이렉트 모델, MoR)
  *   POST /api/fortune      — 결제 검증 후 LLM 운세 생성 (마켓별 언어 프롬프트)
  *   GET  /api/health       — 헬스체크
  *   POST /webhook/line     — LINE Webhook (일본/태국/대만 LINE OA용)
  *
  * Secrets 등록:
  *   wrangler secret put OPENAI_API_KEY
- *   wrangler secret put STRIPE_SECRET_KEY
+ *   wrangler secret put CREEM_API_KEY
  *   wrangler secret put LINE_CHANNEL_SECRET
  *   wrangler secret put LINE_CHANNEL_ACCESS_TOKEN
  */
@@ -33,10 +33,10 @@ import {
 // ──────────────────────────────────────────
 // 마켓 설정 (markets.js와 동기화 유지)
 // ──────────────────────────────────────────
-// [CFO 20260607] Stripe unit_amount 수정 — smallest unit 기준
-//   JPY, VND : zero-decimal (unit_amount = 액면가)
-//   THB, TWD, PHP, MYR : 2-decimal (unit_amount = 액면가 * 100)
-//   Stripe 최소: JPY>=50, THB>=2000, TWD>=1500, PHP>=3000, VND>=10000, MYR>=200
+// [CFO 20260607 / Creem 전환 20260702] price/currency = 표시·참고용.
+//   Creem은 상품 고정가(product_id) 기반 결제 — 인라인 가격 전송 없음.
+//   활성 마켓(jp ¥500)은 Creem product가 금액을 소유(JPY zero-decimal=액면가).
+//   THB/TWD/PHP/MYR(2-decimal)·VND(zero-decimal)는 향후 마켓 확장 시 참고값.
 const MARKETS = {
   jp: { price: 500,   currency: 'jpy', lang: 'ja',    name: 'MEI', platform: 'line', minAge: 18 }, // JPY 500 (zero-decimal, 인상 200->500)
   th: { price: 3900,  currency: 'thb', lang: 'th',    name: 'MEI', platform: 'line', minAge: 18 }, // THB 39.00 (2-decimal: 39*100)
@@ -292,7 +292,16 @@ function corsResponse(body, status = 200, extra = {}, request = null) {
 }
 
 // ──────────────────────────────────────────
-// POST /api/checkout — Stripe Checkout Session
+// Creem API Base — mode로 test/prod 분기 (기본 test = 안전)
+// ──────────────────────────────────────────
+function creemBase(env) {
+  return env.CREEM_MODE === 'prod'
+    ? 'https://api.creem.io/v1'
+    : 'https://test-api.creem.io/v1';
+}
+
+// ──────────────────────────────────────────
+// POST /api/checkout — Creem Checkout
 // ──────────────────────────────────────────
 async function handleCheckout(request, env) {
   if (request.method !== 'POST') return corsResponse({ error: 'Method not allowed' }, 405);
@@ -303,7 +312,7 @@ async function handleCheckout(request, env) {
     return corsResponse({ error: 'Service temporarily unavailable' }, 503);
   }
 
-  // CISO M2: IP 기반 rate limit을 Stripe 등 외부 호출·검증보다 선행
+  // CISO M2: IP 기반 rate limit을 Creem 등 외부 호출·검증보다 선행
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
   const allowed = await checkRateLimit(env, `checkout:${ip}`);
   if (!allowed) return corsResponse({ error: 'Rate limit exceeded' }, 429);
@@ -352,12 +361,12 @@ async function handleCheckout(request, env) {
     } catch { /* 파싱 실패 → 기본값 유지 */ }
   }
 
-  // Stripe Checkout Session 생성
-  const successUrl = `${safeReturnUrl}?payment=success&session_id={CHECKOUT_SESSION_ID}&market=${mkt.key}`;
-  const cancelUrl  = `${safeReturnUrl}?payment=cancel&market=${mkt.key}`;
+  // Creem Checkout 생성 (리다이렉트 모델 — 성공 시 Creem이 success_url에
+  // ?...&checkout_id=ch_...&signature=... 를 append. authoritative 검증은 서버 GET)
+  const successUrl = `${safeReturnUrl}?payment=success&market=${mkt.key}`;
 
   // 사주 계산 v2 (생년월일 원본 저장 금지 — CISO)
-  // CISO M3: 계산 결과는 Stripe metadata가 아닌 KV(TTL 1h)에만 임시 저장
+  // CISO M3: 계산 결과는 Creem metadata가 아닌 KV(TTL 1h)에만 임시 저장
   const hourKanji = validateHour(userData.time);
   const gender1 = userData.gender === 'male' || userData.gender === 'female' ? userData.gender : null;
   let chart1;
@@ -381,41 +390,40 @@ async function handleCheckout(request, env) {
     }
   }
 
-  const stripeBody = new URLSearchParams({
-    'payment_method_types[]': 'card',
-    mode: 'payment',
-    'line_items[0][price_data][currency]': mkt.currency,
-    'line_items[0][price_data][unit_amount]': String(mkt.price),
-    'line_items[0][price_data][product_data][name]': `${mkt.name} — ${type === 'saju' ? '四柱推命' : '相性占い'}`,
-    'line_items[0][quantity]': '1',
-    success_url: successUrl,
-    cancel_url: cancelUrl,
-    // CISO M3: metadata에는 비민감 식별 정보만. 四柱 데이터(pillars/dominant/lacking)는
-    // Stripe 측 영구 저장을 피하기 위해 KV(TTL 1h)로 이전 — 아래 KV.put 참조
-    'metadata[market]': mkt.key,
-    'metadata[type]': type,
-  });
-
-  const stripeResp = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+  // CISO M3: metadata에는 비민감 식별 정보만. 四柱 데이터(pillars/dominant/lacking)는
+  // Creem 측 영구 저장을 피하기 위해 KV(TTL 1h)로 이전 — 아래 KV.put 참조
+  // Creem은 상품 고정가(product_id) 기반 — 인라인 가격 전송 없음. 인증 = x-api-key(Bearer 아님).
+  const creemResp = await fetch(`${creemBase(env)}/checkouts`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${env.STRIPE_SECRET_KEY}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
+      'x-api-key': env.CREEM_API_KEY,
+      'Content-Type': 'application/json',
     },
-    body: stripeBody.toString(),
+    body: JSON.stringify({
+      product_id: env.CREEM_PRODUCT_ID,
+      success_url: successUrl,
+      request_id: crypto.randomUUID(),
+      metadata: { market: mkt.key, type },
+    }),
   });
 
-  if (!stripeResp.ok) {
-    const err = await stripeResp.json();
-    console.error('Stripe error:', err);
+  if (!creemResp.ok) {
+    const err = await creemResp.text();
+    console.error('Creem error:', err);
     return corsResponse({ error: 'Payment initialization failed' }, 500);
   }
 
-  const session = await stripeResp.json();
+  const session = await creemResp.json();
+  // Creem 응답: { id: "ch_...", checkout_url: "https://checkout.creem.io/ch_...", status, ... }
+  if (!session?.id || !session?.checkout_url) {
+    console.error('Creem checkout missing id/checkout_url');
+    return corsResponse({ error: 'Payment initialization failed' }, 500);
+  }
 
   // KV: 결제 상태 + 명식(파생 데이터) 임시 저장 (TTL 1h) — 생년월일 원본 없음
-  // CISO M3: /api/fortune이 이 레코드에서 명식 데이터를 회수 (Stripe metadata 미사용)
+  // CISO M3: /api/fortune이 이 레코드에서 명식 데이터를 회수 (Creem은 결제상태만)
   // CISO H1: env.KV는 함수 상단에서 보장됨 (fail-closed)
+  // KV 키는 Creem checkout id(ch_...) 기준
   await env.KV.put(
     `cs:${session.id}`,
     JSON.stringify({
@@ -430,7 +438,7 @@ async function handleCheckout(request, env) {
     { expirationTtl: 3600 }
   );
 
-  return corsResponse({ checkoutUrl: session.url, sessionId: session.id });
+  return corsResponse({ checkoutUrl: session.checkout_url, sessionId: session.id });
 }
 
 // ──────────────────────────────────────────
@@ -445,7 +453,7 @@ async function handleFortune(request, env) {
     return corsResponse({ error: 'Service temporarily unavailable' }, 503);
   }
 
-  // CISO M2: IP 기반 rate limit을 KV 조회·Stripe 검증 등 모든 외부 호출보다 선행
+  // CISO M2: IP 기반 rate limit을 KV 조회·Creem 검증 등 모든 외부 호출보다 선행
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
   const allowed = await checkRateLimit(env, `fortune:${ip}`);
   if (!allowed) return corsResponse({ error: 'Rate limit exceeded' }, 429);
@@ -457,8 +465,8 @@ async function handleFortune(request, env) {
 
   const { sessionId } = body;
 
-  // CISO: session_id 필수 — 없으면 즉시 거부. Stripe 형식(cs_...)만 허용
-  if (!sessionId || typeof sessionId !== 'string' || !/^cs_[A-Za-z0-9_]+$/.test(sessionId)) {
+  // CISO: session_id 필수 — 없으면 즉시 거부. Creem 형식(ch_...)만 허용
+  if (!sessionId || typeof sessionId !== 'string' || !/^ch_[A-Za-z0-9]+$/.test(sessionId)) {
     return corsResponse({ error: 'Payment required' }, 402);
   }
 
@@ -471,20 +479,21 @@ async function handleFortune(request, env) {
   }
   if (cs.status === 'used') return corsResponse({ error: 'Session already used' }, 402);
 
-  // Stripe Checkout Session 실제 결제 상태 검증
-  const stripeResp = await fetch(
-    `https://api.stripe.com/v1/checkout/sessions/${sessionId}`,
-    { headers: { 'Authorization': `Bearer ${env.STRIPE_SECRET_KEY}` } }
+  // Creem Checkout 실제 결제 상태 검증 (authoritative — 서버사이드 GET)
+  // paid 판정 = status==='completed' && order.status==='paid'
+  const creemResp = await fetch(
+    `${creemBase(env)}/checkouts?checkout_id=${encodeURIComponent(sessionId)}`,
+    { headers: { 'x-api-key': env.CREEM_API_KEY } }
   );
-  if (!stripeResp.ok) return corsResponse({ error: 'Payment verification failed' }, 402);
+  if (!creemResp.ok) return corsResponse({ error: 'Payment verification failed' }, 402);
 
-  const session = await stripeResp.json();
-  if (session.payment_status !== 'paid') {
+  const session = await creemResp.json();
+  if (session.status !== 'completed' || session.order?.status !== 'paid') {
     return corsResponse({ error: 'Payment not completed' }, 402);
   }
 
   // CISO M3: 명식은 checkout 시 KV에 저장한 레코드에서 회수
-  // (Stripe metadata 미사용 — 생년월일 원본 없음, 파생 명식만)
+  // (Creem 측 미저장 — 생년월일 원본 없음, 파생 명식만)
   // market도 클라이언트 파라미터가 아닌 KV 레코드 값을 신뢰
   const type = cs.type || 'saju';
   const mkt = getMarket(cs.market);

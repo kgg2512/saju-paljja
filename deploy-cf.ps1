@@ -108,9 +108,10 @@ Write-Host "        미등록이면 임시로 'placeholder' 입력" -ForegroundC
 wrangler secret put LINE_CHANNEL_ACCESS_TOKEN
 
 Write-Host ""
-Write-Host "  ⚠️  STRIPE_SECRET_KEY는 Stripe 등록 완료 후 별도 실행:" -ForegroundColor Yellow
+Write-Host "  ⚠️  CREEM_API_KEY는 Creem 온보딩(스토어 생성+KYB/KYC 심사 통과) 후 별도 실행:" -ForegroundColor Yellow
 Write-Host "      cd markets\web\worker" -ForegroundColor Gray
-Write-Host "      wrangler secret put STRIPE_SECRET_KEY" -ForegroundColor Gray
+Write-Host "      wrangler secret put CREEM_API_KEY   # x-api-key (Bearer 아님), test/prod 키 분리" -ForegroundColor Gray
+Write-Host "      그리고 wrangler.toml [vars]의 CREEM_PRODUCT_ID = 실제 prod_ 값으로 교체" -ForegroundColor Gray
 
 Pop-Location
 
@@ -169,9 +170,11 @@ Write-Host "  Worker URL : $workerUrl" -ForegroundColor White
 Write-Host "  Landing    : https://kgg2512.github.io/saju-paljja/" -ForegroundColor White
 Write-Host "  Web App    : https://kgg2512.github.io/saju-paljja/markets/web/app.html" -ForegroundColor White
 Write-Host ""
-Write-Host "  ── Stripe 등록 완료 후 해야 할 것 ──────────────────────" -ForegroundColor Yellow
+Write-Host "  ── Creem 온보딩 완료 후 해야 할 것 (라이브 결제 활성화) ──────────" -ForegroundColor Yellow
+Write-Host "  선결: Creem 스토어 생성 → KYB/KYC+은행 심사 통과 → product(¥500) 생성 → prod_id 확보" -ForegroundColor Gray
 Write-Host "  1. cd markets\web\worker" -ForegroundColor Gray
-Write-Host "     wrangler secret put STRIPE_SECRET_KEY" -ForegroundColor Gray
-Write-Host "  2. markets\web\app.html 열어서 REPLACE_WITH_STRIPE_PK → 실제 pk_ 키로 교체" -ForegroundColor Gray
-Write-Host "  3. git add -A && git commit -m 'deploy: Stripe 설정' && git push origin main" -ForegroundColor Gray
+Write-Host "     wrangler secret put CREEM_API_KEY   # x-api-key, test/prod 키 분리" -ForegroundColor Gray
+Write-Host "  2. wrangler.toml [vars] CREEM_PRODUCT_ID → 실제 prod_ 값, 라이브 시 CREEM_MODE = 'prod'" -ForegroundColor Gray
+Write-Host "  3. cd .. ; wrangler deploy   (vars 변경 반영)" -ForegroundColor Gray
+Write-Host "  4. git add -A && git commit -m 'deploy: Creem 결제 활성화' && git push origin main" -ForegroundColor Gray
 Write-Host ""

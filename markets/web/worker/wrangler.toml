@@ -5,9 +5,11 @@
 # ⚠️ 배포 전 체크리스트 (CISO H1: KV 미바인딩 시 worker가 503 fail-closed)
 #   [ ] 1. KV 네임스페이스 생성 후 아래 REPLACE_WITH_KV_NAMESPACE_ID /
 #          REPLACE_WITH_KV_PREVIEW_ID 를 실제 id로 교체 (deploy-cf.ps1이 자동 처리)
-#   [ ] 2. Secrets 등록: OPENAI_API_KEY, STRIPE_SECRET_KEY,
+#   [ ] 2. Secrets 등록: OPENAI_API_KEY, CREEM_API_KEY,
 #          LINE_CHANNEL_SECRET, LINE_CHANNEL_ACCESS_TOKEN
-#   placeholder 상태로 배포하면 /api/checkout, /api/fortune 전부 503 반환됨
+#   [ ] 3. [vars]의 CREEM_PRODUCT_ID 를 Creem 대시보드 product id(prod_...)로 교체
+#   [ ] 4. 라이브 전환 시 CREEM_MODE = "prod" (기본 "test" = 안전)
+#   placeholder 상태로 배포하면 /api/checkout, /api/fortune 전부 503/실패 반환됨
 # ══════════════════════════════════════════════════════════════
 #
 # 사전 작업:
@@ -17,7 +19,7 @@
 #      → 생성된 id를 아래에 입력
 #   3. Secrets 등록:
 #      wrangler secret put OPENAI_API_KEY
-#      wrangler secret put STRIPE_SECRET_KEY
+#      wrangler secret put CREEM_API_KEY   # Creem test/prod 키 (x-api-key, Bearer 아님)
 #      wrangler secret put LINE_CHANNEL_SECRET
 #      wrangler secret put LINE_CHANNEL_ACCESS_TOKEN
 #
@@ -36,6 +38,10 @@ SERVICE_NAME = "The Fate Web"
 WEB_APP_URL = "https://kgg2512.github.io/saju-paljja/markets/web/app.html"
 # LINE_MARKET: 이 Worker가 연결된 LINE OA의 기본 마켓 ("jp"/"th"/"tw")
 LINE_MARKET = "jp"
+# Creem 결제 (product_id는 비밀 아님 — 공개 vars). API 키만 secret으로 별도 등록.
+CREEM_PRODUCT_ID = "REPLACE_WITH_CREEM_PRODUCT_ID"
+# CREEM_MODE: "test"(기본, test-api.creem.io) / "prod"(api.creem.io) — 라이브 전 "prod"로
+CREEM_MODE = "test"
 
 # ── KV 네임스페이스 ──────────────────────
 # 생성 명령: wrangler kv:namespace create MEISEI_WEB_KV
@@ -55,7 +61,7 @@ command = ""
 
 # ── Secrets 목록 (값은 wrangler secret put으로만 등록) ──
 # OPENAI_API_KEY          — GPT-4o mini 호출
-# STRIPE_SECRET_KEY       — Stripe 결제 처리
+# CREEM_API_KEY           — Creem 결제 처리 (MoR, x-api-key 인증)
 # LINE_CHANNEL_SECRET     — LINE Webhook 서명 검증
 # LINE_CHANNEL_ACCESS_TOKEN — LINE 메시지 발송 (선택)
 #
