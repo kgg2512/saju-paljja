@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#06C755">
   <title>MEI — AI占いサービス</title>
 
-  <!-- 보안 헤더 (F3 심층방어): CSP meta = XSS 심층방어. connect-src는 배포될 *.workers.dev + Creem 허용.
+  <!-- 보안 헤더 (F3 심층방어): CSP meta = XSS 심층방어. connect-src는 the-fate-web 워커 + Creem만 허용(N2: *.workers.dev 와일드카드 제거 → XSS 시 임의 workers.dev 반출 차단).
        ⚠️ frame-ancestors / X-Frame-Options / X-Content-Type-Options 는 meta로 강제 불가(HTTP 헤더 전용) →
        클릭재킹 완전차단은 CF Worker HTML 서빙 전환 필요(회장 결정, 큐잉). -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.workers.dev https://*.creem.io; img-src 'self' data:; frame-ancestors 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://the-fate-web.kgg2512.workers.dev https://*.creem.io; img-src 'self' data:; frame-ancestors 'none'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
