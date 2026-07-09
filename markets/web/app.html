@@ -17,7 +17,7 @@
 
   <!-- window injection points — 배포 시 실제 값으로 교체 -->
   <script>
-  window.WORKER_URL = 'REPLACE_WITH_WORKER_URL';
+  window.WORKER_URL = 'https://the-fate-web.kgg2512.workers.dev';
   </script>
 
   <style>
@@ -765,6 +765,8 @@ const MARKET_I18N = {
     payAmount: '¥500', payTax: '税込・ワンタイム',
     payDesc: 'ボタンを1回タップするだけで<br>安全なCreem決済ページへ移動します。',
     payCta: '今すぐ決済する', paySecurity: 'Creem による安全な決済', payBack: '← 戻る',
+    payCancelled: '決済がキャンセルされました。もう一度お試しください。',
+    payFailed: '決済の確認に失敗しました。お支払いが完了している場合は、しばらく待ってから再度お試しください（重複請求はされません）。',
     loadingCheckout: '決済ページを準備中…', loadingFortune: 'AIが鑑定中…',
     sajuBadge: '四柱推命', gungBadge: '相性占い',
     pillarNames: ['年柱', '月柱', '日柱', '時柱'],
@@ -1457,7 +1459,10 @@ async function handlePaymentReturn() {
 
   } catch (err) {
     setLoading(false);
-    alert(err.message);
+    // 결제는 완료됐으나 검증/생성 실패 가능 → 명확한 안내 + 재시도 경로(메뉴).
+    // session은 유지(sessionStorage 미삭제) — API측 webhook 폴백·LLM 롤백으로 재시도 시 구제.
+    alert(t.payFailed || err.message);
+    showScreen('screen-menu');
     return false;
   }
 }
@@ -1670,11 +1675,18 @@ async function initApp() {
   // i18n 적용
   applyI18n(state.i18n);
 
-  // 결제 완료 리턴 처리 (최우선)
+  // 결제 완료/취소 리턴 처리 (최우선)
   const params = new URLSearchParams(window.location.search);
-  if (params.get('payment') === 'success') {
+  const payState = (params.get('payment') || params.get('status') || '').toLowerCase();
+  if (payState === 'success' || params.get('checkout_id')) {
     const handled = await handlePaymentReturn();
     if (handled) return;
+  } else if (['cancel', 'cancelled', 'canceled', 'failed', 'failure'].includes(payState)) {
+    // 결제 취소/실패 복귀 — 명확한 안내 후 메뉴로(재시도 경로). 생년월일 미저장이므로 재입력 필요.
+    try {
+      window.history.replaceState({}, '', window.location.pathname + `?market=${state.market}`);
+    } catch (e) {}
+    alert(state.i18n.payCancelled || 'The payment was cancelled. Please try again.');
   }
 
   // 동의 여부 확인

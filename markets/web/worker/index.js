@@ -12,14 +12,16 @@
  * 3. CF Secrets (API 키 하드코딩 절대 금지)
  *
  * 엔드포인트:
- *   POST /api/checkout     — Creem Checkout 생성 (리다이렉트 모델, MoR)
- *   POST /api/fortune      — 결제 검증 후 LLM 운세 생성 (마켓별 언어 프롬프트)
- *   GET  /api/health       — 헬스체크
- *   POST /webhook/line     — LINE Webhook (일본/태국/대만 LINE OA용)
+ *   POST /api/checkout       — Creem Checkout 생성 (리다이렉트 모델, MoR)
+ *   POST /api/fortune        — 결제 검증 후 LLM 운세 생성 (마켓별 언어 프롬프트)
+ *   GET  /api/health         — 헬스체크
+ *   POST /api/webhook/creem  — Creem Webhook (checkout.completed → KV paid 마킹, 이탈 구제)
+ *   POST /webhook/line       — LINE Webhook (일본/태국/대만 LINE OA용)
  *
  * Secrets 등록:
  *   wrangler secret put OPENAI_API_KEY
- *   wrangler secret put CREEM_API_KEY
+ *   wrangler secret put CREEM_API_KEY          # Creem 결제 (x-api-key)
+ *   wrangler secret put CREEM_WEBHOOK_SECRET   # Creem webhook 서명(creem-signature, HMAC-SHA256)
  *   wrangler secret put LINE_CHANNEL_SECRET
  *   wrangler secret put LINE_CHANNEL_ACCESS_TOKEN
  */
@@ -194,6 +196,31 @@ async function verifyLineSignature(body, signature, secret) {
   const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(body));
   const computed = btoa(String.fromCharCode(...new Uint8Array(sig)));
   return computed === signature;
+}
+
+// ──────────────────────────────────────────
+// Creem Webhook 서명 검증
+//   docs.creem.io: computed = HMAC_SHA256(rawBody, CREEM_WEBHOOK_SECRET) → hex digest.
+//   요청의 `creem-signature` 헤더와 상수 시간 비교. secret/헤더 없으면 검증 실패(fail-closed).
+// ──────────────────────────────────────────
+async function verifyCreemSignature(rawBody, signature, secret) {
+  if (!signature || !secret) return false;
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw', encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const sigBuf = await crypto.subtle.sign('HMAC', key, encoder.encode(rawBody));
+  const computed = Array.from(new Uint8Array(sigBuf))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+  // 상수 시간 비교 (타이밍 공격 방어)
+  if (computed.length !== signature.length) return false;
+  let diff = 0;
+  for (let i = 0; i < computed.length; i++) {
+    diff |= computed.charCodeAt(i) ^ signature.charCodeAt(i);
+  }
+  return diff === 0;
 }
 
 // ──────────────────────────────────────────
@@ -479,18 +506,25 @@ async function handleFortune(request, env) {
   }
   if (cs.status === 'used') return corsResponse({ error: 'Session already used' }, 402);
 
-  // Creem Checkout 실제 결제 상태 검증 (authoritative — 서버사이드 GET)
-  // paid 판정 = status==='completed' && order.status==='paid'
-  const creemResp = await fetch(
-    `${creemBase(env)}/checkouts?checkout_id=${encodeURIComponent(sessionId)}`,
-    { headers: { 'x-api-key': env.CREEM_API_KEY } }
-  );
-  if (!creemResp.ok) return corsResponse({ error: 'Payment verification failed' }, 402);
-
-  const session = await creemResp.json();
-  if (session.status !== 'completed' || session.order?.status !== 'paid') {
-    return corsResponse({ error: 'Payment not completed' }, 402);
+  // Creem Checkout 실제 결제 상태 검증 (authoritative — 서버사이드 GET).
+  //   paid 판정 = status==='completed' && order.status==='paid'.
+  //   GET 실패/미완료 시 webhook 폴백: /api/webhook/creem이 서명 검증 후 KV에 마킹한
+  //   cs.paidByWebhook===true 는 신뢰 가능(공격자는 KV에 쓸 수 없음) → 리다이렉트 이탈·GET 장애 구제.
+  let paid = false;
+  try {
+    const creemResp = await fetch(
+      `${creemBase(env)}/checkouts?checkout_id=${encodeURIComponent(sessionId)}`,
+      { headers: { 'x-api-key': env.CREEM_API_KEY } }
+    );
+    if (creemResp.ok) {
+      const session = await creemResp.json();
+      if (session.status === 'completed' && session.order?.status === 'paid') paid = true;
+    }
+  } catch (e) {
+    // 네트워크 오류 → webhook 폴백으로 판정
   }
+  if (!paid && cs.paidByWebhook === true) paid = true;
+  if (!paid) return corsResponse({ error: 'Payment not completed' }, 402);
 
   // CISO M3: 명식은 checkout 시 KV에 저장한 레코드에서 회수
   // (Creem 측 미저장 — 생년월일 원본 없음, 파생 명식만)
@@ -693,6 +727,60 @@ async function handleLineWebhook(request, env) {
 }
 
 // ──────────────────────────────────────────
+// POST /api/webhook/creem — Creem Webhook (비동기 fulfillment 안전망)
+//   checkout.completed 수신 시 KV 레코드(cs:<ch_id>)에 paidByWebhook 마킹 →
+//   사용자가 리다이렉트를 놓쳐도 결제 상태를 서버측에 확정(리다이렉트 이탈 구제).
+//   CISO: 서명 검증(HMAC-SHA256) 실패 = 401. 멱등(재전송 무해). 유효 서명이면 항상 200(재시도 중단).
+// ──────────────────────────────────────────
+async function handleCreemWebhook(request, env) {
+  if (request.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405, headers: { 'Cache-Control': 'no-store' } });
+  }
+
+  const rawBody = await request.text();
+  const signature = request.headers.get('creem-signature');
+
+  // CISO: 서명 검증 최우선 (secret 미설정 시 검증 불가 → fail-closed 401)
+  const valid = await verifyCreemSignature(rawBody, signature, env.CREEM_WEBHOOK_SECRET);
+  if (!valid) {
+    return new Response('Unauthorized', { status: 401, headers: { 'Cache-Control': 'no-store' } });
+  }
+
+  let payload;
+  try { payload = JSON.parse(rawBody); } catch {
+    return new Response('Bad Request', { status: 400, headers: { 'Cache-Control': 'no-store' } });
+  }
+
+  // 단건 결제 모델 — checkout.completed만 처리. 구독·환불 등은 무관 → 200 ack.
+  if (payload?.eventType === 'checkout.completed') {
+    const co = payload.object || {};
+    const chId = co.id;
+    const isPaid = co.status === 'completed' && co.order?.status === 'paid';
+
+    if (isPaid && typeof chId === 'string' && /^ch_[A-Za-z0-9]+$/.test(chId)) {
+      // KV 미바인딩이면 마킹 불가 → 503으로 Creem 재시도 유도(30s/1m/5m/1h)
+      if (!env.KV) {
+        return new Response('KV unavailable', { status: 503, headers: { 'Cache-Control': 'no-store' } });
+      }
+      const csRaw = await env.KV.get(`cs:${chId}`);
+      if (csRaw) {
+        let cs = null;
+        try { cs = JSON.parse(csRaw); } catch { cs = null; }
+        // 멱등: 이미 사용(used)됐거나 이미 마킹됐으면 no-op. 명식 데이터는 보존.
+        if (cs && cs.status !== 'used' && cs.paidByWebhook !== true) {
+          cs.paidByWebhook = true;
+          cs.paidAt = Date.now();
+          await env.KV.put(`cs:${chId}`, JSON.stringify(cs), { expirationTtl: 3600 });
+        }
+      }
+      // 레코드 없음(만료/외부 체크아웃) = 무해 → 200 ack (재시도 중단)
+    }
+  }
+
+  return new Response('OK', { status: 200, headers: { 'Cache-Control': 'no-store' } });
+}
+
+// ──────────────────────────────────────────
 // EU 차단 로직 (CISO M8 — GDPR 리스크 방어)
 // ──────────────────────────────────────────
 const EU_COUNTRY_CODES = new Set([
@@ -722,17 +810,20 @@ export default {
     }
 
     // CISO M8: EU/EEA/UK 접근 차단 (GDPR 준수)
-    if (isEURequest(request) && !path.endsWith('/api/health')) {
+    //   /api/health 및 /api/webhook/creem 은 제외 — webhook 발신자는 Creem 서버(사용자 아님),
+    //   egress IP가 EU로 지오로케이션돼도 결제 알림을 451로 막으면 안 됨(서명 검증이 진짜 게이트).
+    if (isEURequest(request) && !path.endsWith('/api/health') && !path.endsWith('/api/webhook/creem')) {
       return new Response(
         JSON.stringify({ error: 'Service not available in your region.' }),
         { status: 451, headers: { 'Content-Type': 'application/json', ...corsHeaders, 'Cache-Control': 'no-store' } }
       );
     }
 
-    if (path.endsWith('/api/checkout')) return handleCheckout(request, env);
-    if (path.endsWith('/api/fortune'))  return handleFortune(request, env);
-    if (path.endsWith('/api/health'))   return handleHealth();
-    if (path.endsWith('/webhook/line')) return handleLineWebhook(request, env);
+    if (path.endsWith('/api/checkout'))      return handleCheckout(request, env);
+    if (path.endsWith('/api/fortune'))       return handleFortune(request, env);
+    if (path.endsWith('/api/health'))        return handleHealth();
+    if (path.endsWith('/api/webhook/creem')) return handleCreemWebhook(request, env);
+    if (path.endsWith('/webhook/line'))      return handleLineWebhook(request, env);
 
     return new Response('Not Found', { status: 404, headers: { 'Cache-Control': 'no-store' } });
   },

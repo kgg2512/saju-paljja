@@ -146,14 +146,11 @@ $app = $app -replace "window\.WORKER_URL\s*=\s*'REPLACE_WITH_WORKER_URL'", "wind
 $app | Set-Content $appPath -Encoding UTF8
 Write-OK "app.html 업데이트"
 
-# docs/app.html 동기화 (GitHub Pages 서빙 사본 — 법무 링크 상대경로만 다름)
-$docsAppPath = Join-Path $RepoRoot "docs\app.html"
-$docsApp = $app -replace [regex]::Escape('../japan/legal/'), 'japan/legal/'
-$docsApp | Set-Content $docsAppPath -Encoding UTF8
-Write-OK "docs/app.html 동기화 완료"
+# 단일 진실 원천 = markets/web/app.html. GitHub Pages(deploy-pages.yml)가 markets/web/를
+# 그대로 서빙하므로 docs/app.html 사본은 불필요(과거 orphan, 2026-07-09 제거).
 
 Set-Location $RepoRoot
-git add "markets/web/app.html" "docs/app.html" "markets/web/worker/wrangler.toml"
+git add "markets/web/app.html" "markets/web/worker/wrangler.toml"
 git commit -m "deploy: CF Worker URL + KV namespace 자동 설정"
 git push origin main
 Write-OK "GitHub push 완료 → GitHub Actions가 Pages 자동 배포"

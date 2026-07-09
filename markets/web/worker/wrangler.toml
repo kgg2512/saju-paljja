@@ -5,7 +5,7 @@
 # ⚠️ 배포 전 체크리스트 (CISO H1: KV 미바인딩 시 worker가 503 fail-closed)
 #   [ ] 1. KV 네임스페이스 생성 후 아래 REPLACE_WITH_KV_NAMESPACE_ID /
 #          REPLACE_WITH_KV_PREVIEW_ID 를 실제 id로 교체 (deploy-cf.ps1이 자동 처리)
-#   [ ] 2. Secrets 등록: OPENAI_API_KEY, CREEM_API_KEY,
+#   [ ] 2. Secrets 등록: OPENAI_API_KEY, CREEM_API_KEY, CREEM_WEBHOOK_SECRET,
 #          LINE_CHANNEL_SECRET, LINE_CHANNEL_ACCESS_TOKEN
 #   [ ] 3. [vars]의 CREEM_PRODUCT_ID 를 Creem 대시보드 product id(prod_...)로 교체
 #   [ ] 4. 라이브 전환 시 CREEM_MODE = "prod" (기본 "test" = 안전)
@@ -47,8 +47,8 @@ CREEM_MODE = "test"
 # 생성 명령: wrangler kv:namespace create MEISEI_WEB_KV
 [[kv_namespaces]]
 binding = "KV"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
-preview_id = "REPLACE_WITH_KV_PREVIEW_ID"
+id = "d3ea559f977b4236b991aae7f8ce433e"
+preview_id = "d3ea559f977b4236b991aae7f8ce433e"
 
 # ── 개발 설정 ──────────────────────────
 [dev]
@@ -62,6 +62,8 @@ command = ""
 # ── Secrets 목록 (값은 wrangler secret put으로만 등록) ──
 # OPENAI_API_KEY          — GPT-4o mini 호출
 # CREEM_API_KEY           — Creem 결제 처리 (MoR, x-api-key 인증)
+# CREEM_WEBHOOK_SECRET    — Creem webhook 서명 검증 (creem-signature, HMAC-SHA256 hex)
+#                            Creem 대시보드 Developers > Webhook에서 발급, 엔드포인트 등록 후 확보
 # LINE_CHANNEL_SECRET     — LINE Webhook 서명 검증
 # LINE_CHANNEL_ACCESS_TOKEN — LINE 메시지 발송 (선택)
 #
