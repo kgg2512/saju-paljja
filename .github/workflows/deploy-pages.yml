@@ -41,6 +41,12 @@ jobs:
           cp -r markets/thailand _site/markets/thailand 2>/dev/null || true
           cp -r markets/global _site/markets/global 2>/dev/null || true
 
+          # 데모(작업용 스테이징) 슬롯 — 데모/스토어 이원화 (2026-07-10)
+          cp -r markets/web-demo _site/markets/web-demo 2>/dev/null || true
+
+          # robots.txt (데모 슬롯 크롤러 차단)
+          [ -f robots.txt ] && cp robots.txt _site/robots.txt || true
+
           # Worker 소스코드는 GitHub Pages에 노출하지 않음 (CISO 원칙)
           find _site/markets -type d -name "worker" -exec rm -rf {} + 2>/dev/null || true
 

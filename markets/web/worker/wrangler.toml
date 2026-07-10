@@ -59,6 +59,27 @@ local_protocol = "http"
 [build]
 command = ""
 
+# ── 데모(작업용 스테이징) 환경 — 회장 지시 2026-07-10 데모/스토어 이원화 ──
+# 백엔드 작업은 데모 워커에 먼저 배포·검증 후 프로덕션 배포:
+#   wrangler deploy --env demo   → https://the-fate-web-demo.kgg2512.workers.dev
+#   검증 PASS 후 → wrangler deploy
+# ⚠️ 선행 1회: env별 secrets 별도 등록 필요 (wrangler secret put OPENAI_API_KEY --env demo 등)
+# ⚠️ KV는 프로덕션과 공유(세션 데이터 겹침 주의) — 분리 필요 시 전용 네임스페이스 생성
+[env.demo]
+name = "the-fate-web-demo"
+
+[env.demo.vars]
+SERVICE_NAME = "The Fate Web (DEMO)"
+WEB_APP_URL = "https://kgg2512.github.io/saju-paljja/markets/web-demo/app.html"
+LINE_MARKET = "jp"
+CREEM_PRODUCT_ID = "REPLACE_WITH_CREEM_PRODUCT_ID"
+CREEM_MODE = "test"
+
+[[env.demo.kv_namespaces]]
+binding = "KV"
+id = "d3ea559f977b4236b991aae7f8ce433e"
+preview_id = "d3ea559f977b4236b991aae7f8ce433e"
+
 # ── Secrets 목록 (값은 wrangler secret put으로만 등록) ──
 # OPENAI_API_KEY          — GPT-4o mini 호출
 # CREEM_API_KEY           — Creem 결제 처리 (MoR, x-api-key 인증)
