@@ -61,10 +61,11 @@ command = ""
 
 # ── 데모(작업용 스테이징) 환경 — 회장 지시 2026-07-10 데모/스토어 이원화 ──
 # 백엔드 작업은 데모 워커에 먼저 배포·검증 후 프로덕션 배포:
-#   wrangler deploy --env demo   → https://the-fate-web-demo.kgg2512.workers.dev
-#   검증 PASS 후 → wrangler deploy
+#   .\deploy-demo.ps1  (또는 wrangler deploy --env demo)   → https://the-fate-web-demo.kgg2512.workers.dev
+#   검증 PASS 후 → wrangler deploy (프로덕션)
 # ⚠️ 선행 1회: env별 secrets 별도 등록 필요 (wrangler secret put OPENAI_API_KEY --env demo 등)
-# ⚠️ KV는 프로덕션과 공유(세션 데이터 겹침 주의) — 분리 필요 시 전용 네임스페이스 생성
+# ✅ KV 프로덕션 분리 완료(2026-07-11, 전사 보안감사 후속 ③): MEISEI_WEB_KV_DEMO 전용 네임스페이스
+#    (`npx wrangler kv namespace create MEISEI_WEB_KV_DEMO [--preview]`로 생성) — 세션 데이터 겹침 제거.
 [env.demo]
 name = "the-fate-web-demo"
 
@@ -77,8 +78,8 @@ CREEM_MODE = "test"
 
 [[env.demo.kv_namespaces]]
 binding = "KV"
-id = "d3ea559f977b4236b991aae7f8ce433e"
-preview_id = "d3ea559f977b4236b991aae7f8ce433e"
+id = "3556f2b9cc2e423d8281fb2952680487"
+preview_id = "09915ae275b74e8da9c1b31524fe2b50"
 
 # ── Secrets 목록 (값은 wrangler secret put으로만 등록) ──
 # OPENAI_API_KEY          — GPT-4o mini 호출

@@ -8,6 +8,12 @@
 #    web worker(the-fate-web, markets/web/worker)가 JP 마켓을 단일 서빙한다.
 #    japan worker는 LIFF(/api/checkout)와 엔드포인트 불일치(/api/payment 구플로우)로 아카이브 처리.
 #    이 스크립트는 web worker만 배포한다 — japan worker 배포 단계를 추가하지 말 것.
+#
+# ⚠️ 데모/스토어 이원화 (회장 지시 2026-07-10, 전사 보안감사 후속 ③, 2026-07-11 구조분리):
+#    이 스크립트는 the-fate-web(스토어=프로덕션 워커)만 배포한다.
+#    백엔드 변경 시 반드시 이 스크립트 실행 *전에* .\deploy-demo.ps1 로 the-fate-web-demo(데모 전용
+#    워커+KV)에 먼저 배포·검증(/api/checkout, /api/fortune 실호출 PASS)한 뒤에만 여기로 넘어올 것.
+#    데모 직행(this 스크립트만 실행) 금지 — 스토어 직행 금지 원칙(CLAUDE.md §데모/스토어 이원화).
 
 $ErrorActionPreference = "Stop"
 $RepoRoot = $PSScriptRoot
