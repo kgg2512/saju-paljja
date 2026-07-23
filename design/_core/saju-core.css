@@ -1,0 +1,66 @@
+/* ==========================================================================
+   G2 Saju — Core Design System  (구조 계약 / 테마 중립)
+   A안: 구조·UX는 이 파일이 강제, 색·폰트는 skin-<국가>.css가 소유.
+   core는 색을 '정의'하지 않고 --sj-* 시맨틱 훅을 '참조'만 한다.
+   아래 :root 의 --sj-* 값은 skin 미로드 시의 중립 fallback일 뿐이다.
+   출처: Claude Design 프로젝트(★신규 세트) — 골모드 P3 G0-D 추출 2026-07-24.
+   ========================================================================== */
+:root{
+  /* 간격 스케일 (4px 베이스) */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px; --sp-7:32px; --sp-8:40px;
+  /* 반경 (MEI 기준) */
+  --radius-chip:12px; --radius-btn:14px; --radius-card:16px; --radius-sheet:26px; --radius-pill:999px;
+  /* 타이포 스케일 */
+  --fs-cap:11px; --fs-sm:13px; --fs-md:15px; --fs-lg:18px; --fs-xl:22px; --fs-2xl:30px; --fs-display:54px;
+  --lh-tight:1.2; --lh-snug:1.5; --lh-body:1.85;
+  --fw-reg:400; --fw-md:600; --fw-bold:700;
+  /* 레이아웃 */
+  --app-max:480px;
+  /* 시맨틱 색 훅 (skin이 재정의; 여기엔 중립 fallback만) */
+  --sj-bg:#0e1015; --sj-surface:#171a22; --sj-surface-2:#1d222c;
+  --sj-text:#eaf0f7; --sj-text-soft:#a9b8c9; --sj-text-dim:#6d8096;
+  --sj-accent:#c8503c; --sj-accent-contrast:#ffffff;
+  --sj-line:rgba(255,255,255,0.10); --sj-line-strong:rgba(205,168,106,0.30);
+  --sj-gold:#cda86a; --sj-gold-bright:#e8cd92;
+  --font-display:'Noto Serif',serif; --font-body:'Noto Sans',sans-serif;
+}
+
+/* 앱 컨테이너 (모바일) */
+.sj-app{width:100%;max-width:var(--app-max);min-height:100vh;position:relative;overflow-x:hidden;
+  font-family:var(--font-body);color:var(--sj-text);background:var(--sj-bg);line-height:var(--lh-snug);}
+
+/* 카드 */
+.sj-card{background:var(--sj-surface);border:1px solid var(--sj-line);border-radius:var(--radius-card);padding:var(--sp-4);}
+
+/* 바텀시트 */
+.sj-sheet{background:var(--sj-surface-2);border-top:1px solid var(--sj-line-strong);
+  border-radius:var(--radius-sheet) var(--radius-sheet) 0 0;padding:var(--sp-6) var(--sp-6) var(--sp-7);}
+
+/* 버튼 (히트타겟 44px+) */
+.sj-btn{display:flex;align-items:center;justify-content:center;gap:var(--sp-2);
+  width:100%;padding:var(--sp-4);border:none;border-radius:var(--radius-btn);
+  font-family:var(--font-body);font-size:var(--fs-md);font-weight:var(--fw-bold);letter-spacing:2px;
+  cursor:pointer;min-height:52px;}
+.sj-btn-primary{background:var(--sj-accent);color:var(--sj-accent-contrast);}
+.sj-btn-disabled{background:var(--sj-surface-2);color:var(--sj-text-dim);cursor:not-allowed;}
+
+/* 칩 / pill */
+.sj-chip{display:inline-flex;align-items:center;gap:var(--sp-2);
+  padding:var(--sp-1) var(--sp-4);border-radius:var(--radius-pill);
+  border:1px solid var(--sj-line-strong);font-size:var(--fs-cap);color:var(--sj-text-soft);}
+
+/* 메뉴 로우 */
+.sj-menu-row{display:flex;gap:var(--sp-3);align-items:center;padding:var(--sp-4);
+  background:var(--sj-surface);border:1px solid var(--sj-line);border-radius:var(--radius-card);cursor:pointer;}
+
+/* 체크박스 */
+.sj-check-box{flex:0 0 auto;width:22px;height:22px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;font-size:var(--fs-sm);}
+.sj-check-on{background:var(--sj-gold);color:#16243a;font-weight:var(--fw-bold);}
+.sj-check-off{border:1.5px solid var(--sj-text-dim);}
+
+/* 텍스트 유틸 */
+.sj-display{font-family:var(--font-display);font-weight:var(--fw-md);line-height:var(--lh-tight);}
+.sj-t-soft{color:var(--sj-text-soft);}
+.sj-t-dim{color:var(--sj-text-dim);}
+.sj-link{color:var(--sj-gold-bright);text-decoration:underline;text-underline-offset:3px;}

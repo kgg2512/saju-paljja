@@ -21,6 +21,12 @@
  * 변경 포인트: webhook 서명 검증, 결제 플랫폼, 메시지 API, 법무 링크
  */
 
+// 명식 계산 엔진 (JP와 동일 단일 소스, wrangler가 번들링)
+import { calculateChart, buildMeishikiSummary } from '../../../shared/saju-engine/saju-v2.js';
+
+// 사주 웹앱 "나도 만들기" 랜딩 (G1 결과 공유 URL 확정 전 임시 링크 — 결과 토큰 URL 준비되면 교체)
+const SAJU_WEB_LANDING = 'https://kgg2512.github.io/saju-paljja/?market=kr&utm_source=kakao_bot';
+
 // ──────────────────────────────────────────
 // CORS 헤더 (CISO: 캐싱금지)
 // ──────────────────────────────────────────
@@ -138,6 +144,112 @@ async function handleWebhook(request, env) {
 }
 
 // ──────────────────────────────────────────
+// /skill/saju — 카카오 i 오픈빌더 스킬 서버 (LLM 불필요, 명식 계산만)
+//   오픈빌더 skill 요청 → 생년월일 파싱 → 사주 요약 + 전체 풀이 링크를
+//   오픈빌더 응답 JSON(simpleText/basicCard)으로 반환. Secrets 불요(순수 계산).
+// ──────────────────────────────────────────
+
+/** 24시각(0~23) → 지지 시주 (23~01=子). 미상이면 '不明'. */
+function hourToBranch(h) {
+  if (h == null || Number.isNaN(h)) return '不明';
+  const B = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+  return B[Math.floor(((h + 1) % 24) / 2)];
+}
+
+const EL_KO = { 木: '목(木)', 火: '화(火)', 土: '토(土)', 金: '금(金)', 水: '수(水)' };
+const elKo = (e) => EL_KO[e] || e;
+
+/** 오픈빌더 요청 → { year, month, day, hour } 또는 null. action.params 우선, 없으면 utterance 파싱. */
+function parseBirth(body) {
+  const params = (body && body.action && body.action.params) || {};
+  const cand = [params.birthdate, params.birthDate, params.date, params.sys_date, params.bday];
+  let dstr = '';
+  for (const c of cand) {
+    if (!c) continue;
+    let v = c;
+    // sys.date 엔티티는 {"value":"YYYY-MM-DD"} JSON 문자열로 올 수 있음
+    if (typeof v === 'string' && v.trim().startsWith('{')) {
+      try { v = JSON.parse(v).value || ''; } catch { /* 원문 유지 */ }
+    }
+    if (typeof v === 'string' && v.trim()) { dstr = v.trim(); break; }
+  }
+  const utter = (body && body.userRequest && body.userRequest.utterance) || '';
+  const mt =
+    dstr.match(/(\d{4})[-.\/](\d{1,2})[-.\/](\d{1,2})/) ||
+    dstr.match(/^(\d{4})(\d{2})(\d{2})$/) ||
+    utter.match(/(\d{4})\D{1,3}(\d{1,2})\D{1,3}(\d{1,2})/);
+  if (!mt) return null;
+  const y = +mt[1], m = +mt[2], d = +mt[3];
+  if (y < 1900 || y > 2099 || m < 1 || m > 12 || d < 1 || d > 31) return null;
+  let hour = null;
+  const hm = (params.hour != null ? String(params.hour) : '').match(/(\d{1,2})/) || utter.match(/(\d{1,2})\s*시/);
+  if (hm) hour = +hm[1];
+  return { year: y, month: m, day: d, hour };
+}
+
+/** chart → 한국어 챗봇 요약(티저). 전체 풀이는 웹으로 유도. */
+function buildKoreanSummary(chart) {
+  const ec = chart.elementCount;
+  return [
+    `· 일간(日主): ${chart.dayMaster.kanji} · ${elKo(chart.dayMaster.element)} ${chart.dayMaster.yang ? '양(陽)' : '음(陰)'}`,
+    `· 오행: 목${ec.木} 화${ec.火} 토${ec.土} 금${ec.金} 수${ec.水}`,
+    `· 강한 기운 ${elKo(chart.dominant)} / 약한 기운 ${elKo(chart.lacking)}`,
+    `· 올해(${chart.annual.year}) ${chart.annual.kanji}년의 흐름은 전체 풀이에서 확인하세요.`,
+  ].join('\n');
+}
+
+function obSimpleText(text) {
+  return {
+    version: '2.0',
+    template: {
+      outputs: [{ simpleText: { text } }],
+      quickReplies: [{ label: '전체 풀이 보기', action: 'webLink', webLinkUrl: SAJU_WEB_LANDING }],
+    },
+  };
+}
+
+function obCard(title, description, link) {
+  return {
+    version: '2.0',
+    template: {
+      outputs: [{
+        basicCard: {
+          title,
+          description,
+          buttons: [{ action: 'webLink', label: '전체 풀이 보기', webLinkUrl: link }],
+        },
+      }],
+      quickReplies: [{ label: '나도 만들기', action: 'webLink', webLinkUrl: link }],
+    },
+  };
+}
+
+async function handleSkillSaju(request, env) {
+  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS });
+  if (request.method !== 'POST') return corsResponse(obSimpleText('POST로 호출해주세요.'), 405);
+
+  let body = {};
+  try { body = await request.json(); } catch { /* 빈 본문 허용 */ }
+
+  const birth = parseBirth(body);
+  if (!birth) {
+    return corsResponse(obSimpleText('생년월일을 알려주세요. 예) 1990-03-15 (양력)\n태어난 시간을 알면 더 정확해요.'));
+  }
+
+  let chart;
+  try {
+    chart = calculateChart(birth.year, birth.month, birth.day, hourToBranch(birth.hour));
+  } catch {
+    return corsResponse(obSimpleText('입력한 날짜를 확인해주세요. (1900~2099년, 양력 YYYY-MM-DD)'));
+  }
+
+  const summary = buildKoreanSummary(chart);
+  const title = `${birth.year}.${String(birth.month).padStart(2, '0')}.${String(birth.day).padStart(2, '0')} 사주 요약`;
+  const description = `${summary}\n\n※ 사주 알고리즘 자동 계산 · 참고 정보이며 예언·보장이 아닙니다.`;
+  return corsResponse(obCard(title, description, SAJU_WEB_LANDING));
+}
+
+// ──────────────────────────────────────────
 // 메인 라우터
 // ──────────────────────────────────────────
 export default {
@@ -149,6 +261,7 @@ export default {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
+    if (path.endsWith('/skill/saju') || path.endsWith('/skill')) return handleSkillSaju(request, env);
     if (path.endsWith('/webhook')) return handleWebhook(request, env);
     if (path.endsWith('/api/payment')) return handlePayment(request, env);
     if (path.endsWith('/api/fortune')) return handleFortune(request, env);

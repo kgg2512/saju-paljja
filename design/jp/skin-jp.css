@@ -1,0 +1,10 @@
+/* G2 Saju skin — JP (MEI, 다크 네이비). core --sj-* 훅에 일본 팔레트 매핑. */
+:root{
+  --sj-bg:#070b12;
+  --sj-surface:#172a40; --sj-surface-2:#1d3450;
+  --sj-text:#eaf0f7; --sj-text-soft:#a9b8c9; --sj-text-dim:#6d8096;
+  --sj-accent:#c8503c; --sj-accent-contrast:#ffffff;
+  --sj-line:rgba(255,255,255,0.08); --sj-line-strong:rgba(205,168,106,0.22);
+  --sj-gold:#cda86a; --sj-gold-bright:#e8cd92;
+  --font-display:'Noto Serif JP',serif; --font-body:'Noto Sans JP',sans-serif;
+}
