@@ -1,0 +1,10 @@
+/* G2 Saju skin — KR (MYEONG, 라이트 페이퍼). core --sj-* 훅에 한국 팔레트 매핑. */
+:root{
+  --sj-bg:#f1e8d6;
+  --sj-surface:#fbf6ea; --sj-surface-2:#e7dcc4;
+  --sj-text:#1b1512; --sj-text-soft:#473c33; --sj-text-dim:#7c7065;
+  --sj-accent:#a8311f; --sj-accent-contrast:#fbf6ea;
+  --sj-line:rgba(27,21,18,0.12); --sj-line-strong:rgba(176,137,74,0.4);
+  --sj-gold:#b0894a; --sj-gold-bright:#caa765;
+  --font-display:'Noto Serif KR',serif; --font-body:'Noto Sans KR',sans-serif;
+}
